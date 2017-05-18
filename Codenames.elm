@@ -2,19 +2,19 @@ import Html exposing (Html, Attribute, div, button, text, span)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Maybe exposing (andThen, withDefault)
-import Grid exposing (Grid, render, lookupV, setV, grid)
+import Grid exposing (Grid, lookupV, setV)
 import Vector exposing (Vector, getX, getY)
 import Random
 import RandomList exposing (shuffle, get)
 import WordLists
 
 main =
-  Html.program
-    { init = init
-    , view = view
-    , update = update
-    , subscriptions = subscriptions
-    }
+    Html.program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 
 
@@ -22,72 +22,72 @@ main =
 
 
 type alias Model =
-  { board : Board
-  , turn : Team
-  , hints : Bool
-  , isOver : Bool
-  , wordList : WordList
-  }
+    { board : Board
+    , turn : Team
+    , hints : Bool
+    , isGameOver : Bool
+    , wordList : WordList
+    }
 newModel : Model
 newModel =
-  { board = blankBoard
-  , turn = Team1
-  , hints = False
-  , isOver = False
-  , wordList = NormalWords
-  }
+    { board = blankBoard
+    , turn = Blue
+    , hints = False
+    , isGameOver = False
+    , wordList = NormalWords
+    }
 
 
-type Team = Team1 | Team2
+type Team = Blue | Red
 otherTeam : Team -> Team
 otherTeam team =
-  case team of
-    Team1 -> Team2
-    Team2 -> Team1
+    case team of
+        Blue -> Red
+        Red -> Blue
 
-type Owner = Blank | KillWord | Team Team
-ownerList : Team -> List Owner
-ownerList activeTeam =
-  List.repeat 9 (Team activeTeam)
-  ++ List.repeat 8 (Team <| otherTeam activeTeam)
-  ++ List.repeat 7 Blank
-  ++ List.singleton KillWord
+type CardType = Blank | KillWord | Team Team
+cardTypeList : Team -> List CardType
+cardTypeList activeTeam =
+    List.repeat 9 (Team activeTeam)
+    ++ List.repeat 8 (Team <| otherTeam activeTeam)
+    ++ List.repeat 7 Blank
+    ++ List.singleton KillWord
 
 type alias Card =
-  { word : String
-  , owner : Owner
-  , revealed : Bool
-  , mouseOver : Bool
-  }
+    { word : String
+    , cardType : CardType
+    , revealed : Bool
+    , mouseOver : Bool
+    }
 dummyCard : Card
 dummyCard = 
-  { word = "test"
-  , owner = Blank
-  , revealed = False
-  , mouseOver = False
-  }
+    { word = "test"
+    , cardType = Blank
+    , revealed = False
+    , mouseOver = False
+    }
 
 type alias Board = Grid Card
 blankBoard : Board
-blankBoard = grid 5 5 dummyCard
+blankBoard = Grid.grid 5 5 dummyCard
 
-type WordList = SmallWords | NormalWords | OriginalWords
+type WordList = EasyWords | NormalWords | OriginalWords
 getWordList : WordList -> List String
 getWordList wl =
-  case wl of
-    SmallWords -> WordLists.small_words
-    NormalWords -> WordLists.words
-    OriginalWords -> WordLists.original
+    case wl of
+        EasyWords -> WordLists.easy_words
+        NormalWords -> WordLists.words
+        OriginalWords -> WordLists.original
 
 
 
 init : (Model, Cmd Msg)
 init =
-   reset newModel
+     reset newModel
 
 reset : Model -> (Model, Cmd Msg)
 reset model =
-  {newModel | wordList = model.wordList} ! [randomTeam, randomWords model.wordList]
+    {newModel | wordList = model.wordList} ! [randomTeam, randomWords model.wordList]
 
 
 
@@ -95,107 +95,116 @@ reset model =
 
 
 type Msg
-  = Click Vector
-  | SetTeam Team
-  | SetCardOwners (List Owner)
-  | SetCardWords (List String)
-  | SetWordList WordList
-  | ToggleHints
-  | Reset
-  | EnterTile Vector
-  | LeaveTile Vector
+    = Click Vector
+    | SetTeam Team
+    | SetCardOwners (List CardType)
+    | SetCardWords (List String)
+    | SetWordList WordList
+    | ToggleHints
+    | Reset
+    | EnterTile Vector
+    | LeaveTile Vector
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case msg of
-    Click v ->
-      click v model ! []
-    SetTeam t ->
-      {model | turn = t} ! [randomCards t]
-    SetCardOwners list ->
-      {model | board = setCardOwners list model.board} ! []
-    SetCardWords list ->
-      {model | board = setCardWords list model.board} ! []
-    SetWordList wl ->
-      {model | wordList = wl} ! []
-    ToggleHints ->
-      {model | hints = not model.hints} ! []
-    Reset ->
-      reset model
-    EnterTile v ->
-      {model | board = setMouseOver2 True v model.board} ! []
-    LeaveTile v ->
-      {model | board = setMouseOver2 False v model.board} ! []
+    case msg of
+        Click v ->
+            click v model ! []
+        SetTeam t ->
+            {model | turn = t} ! [randomCards t]
+        SetCardOwners list ->
+            {model | board = setCardOwners list model.board} ! []
+        SetCardWords list ->
+            {model | board = setCardWords list model.board} ! []
+        SetWordList wl ->
+            {model | wordList = wl} ! []
+        ToggleHints ->
+            {model | hints = not model.hints} ! []
+        Reset ->
+            reset model
+        EnterTile v ->
+            {model | board = setMouseOver2 True v model.board} ! []
+        LeaveTile v ->
+            {model | board = setMouseOver2 False v model.board} ! []
 
 setMouseOver : Bool -> Card -> Card
 setMouseOver b card =
-  {card | mouseOver = b}
+    {card | mouseOver = b}
 
 setMouseOver2 : Bool -> Vector -> Board -> Board
 setMouseOver2 b v board =
-  lookupV v board
-  |> withDefault dummyCard
-  |> setMouseOver b
-  |> (\a b c d-> a b d c) setV v board 
+    lookupV v board
+    |> withDefault dummyCard
+    |> setMouseOver b
+    |> (\a b c d-> a b d c) setV v board 
 
 randomTeam : Cmd Msg
-randomTeam = Random.generate SetTeam (Random.map (\b -> if b then Team1 else Team2) Random.bool)
+randomTeam = Random.generate SetTeam (Random.map (\b -> if b then Blue else Red) Random.bool)
 
 randomCards : Team -> Cmd Msg
 randomCards t =
-  Random.generate SetCardOwners <| shuffle <| ownerList t
+    Random.generate SetCardOwners <| shuffle <| cardTypeList t
 
 randomWords : WordList -> Cmd Msg
 randomWords wl =
-  Random.generate SetCardWords <| shuffle <| getWordList wl
+    Random.generate SetCardWords <| shuffle <| getWordList wl
 
-setCardOwners : List Owner -> Board -> Board
+setCardOwners : List CardType -> Board -> Board
 setCardOwners list board =
-  let index v = (getX v) + (5 * getY v) in
-  board
-  |> Grid.indexedMap (\v card -> {card | owner = withDefault Blank <| get (index v) list})
+    let index v = (getX v) + (5 * getY v) in
+    board
+    |> Grid.indexedMap (\v card -> {card | cardType = withDefault Blank <| get (index v) list})
 
 setCardWords : List String -> Board -> Board
 setCardWords list board =
-  let index v = (getX v) + (5 * getY v) in
-  board
-  |> Grid.indexedMap (\v card -> {card | word = withDefault "ERROR" <| get (index v) list})
+    let index v = (getX v) + (5 * getY v) in
+    board
+    |> Grid.indexedMap (\v card -> {card | word = withDefault "ERROR" <| get (index v) list})
 
 reveal : Vector -> Model -> Model
 reveal v model =
-  lookupV v model.board
-  |> andThen (\card -> Just 
-    {model |
-      board = setV v {card | revealed = True} model.board}
-  )
-  |> withDefault model
+    lookupV v model.board
+    |> andThen (\card -> Just 
+        {model |
+            board = setV v {card | revealed = True} model.board}
+    )
+    |> withDefault model
 
 passTurn : Model -> Model
 passTurn model =
-  {model | turn = if model.turn == Team1 then Team2 else Team1}
+    {model | turn = if model.turn == Blue then Red else Blue}
+
+cardsRemaining : Board -> CardType -> Int
+cardsRemaining board cardType =
+    let
+        doesCount card = card.cardType == cardType && card.revealed == False
+    in
+        Grid.allVectors board
+        |> List.filter (\v -> lookupV v board |> Maybe.map doesCount |> withDefault False)
+        |> List.length
 
 endGame : Model -> Model
 endGame model =
-  let
-    remaining = cardsRemaining model.board
-  in
-    if List.any ((==) 0 << remaining) [Team Team1, Team Team2, KillWord]
-    then {model | isOver = True}
-    else model
+    let
+        remaining = cardsRemaining model.board
+    in
+        if List.any ((==) 0 << remaining) [Team Blue, Team Red, KillWord]
+        then {model | isGameOver = True}
+        else model
 
 click : Vector -> Model -> Model
 click v model =
-  if model.isOver then model else
-  let card = lookupV v model.board |> withDefault dummyCard in
-  if card.revealed then model else
-  endGame <|
-  reveal v <|
-  case card.owner of
-    Blank -> passTurn model
-    KillWord -> passTurn model
-    Team t -> if t /= model.turn
-      then passTurn model
-      else model
+    if model.isGameOver then model else
+    let card = lookupV v model.board |> withDefault dummyCard in
+    if card.revealed then model else
+    endGame <|
+    reveal v <|
+    case card.cardType of
+        Blank -> passTurn model
+        KillWord -> passTurn model
+        Team t -> if t /= model.turn
+            then passTurn model
+            else model
 
 
 
@@ -206,129 +215,153 @@ subscriptions model = Sub.none
 
 -- VIEW
 
-cardColor : Card -> String
-cardColor card =
-  if card.revealed
-  then
-    ownerColor card.owner
-  else
-    "rgb(240,232,196)" --Beige
-
-ownerColor : Owner -> String
-ownerColor o =
-  case o of
-    Blank -> "Gray"
-    KillWord -> "Black"
-    Team t -> teamColor t
+cardColor : CardType -> String
+cardColor o =
+    case o of
+        Blank -> "Gray"
+        KillWord -> "Black"
+        Team t -> teamColor t
 
 teamColor : Team -> String
 teamColor t =
-  case t of
-    Team1 -> "Blue"
-    Team2 -> "Red"
-  
+    case t of
+        Blue -> "Blue"
+        Red -> "Red"
 
-tileStyle : Card -> Bool -> Attribute msg
-tileStyle card isOver =
-  let
-    fontColor card =
-      if (card.revealed && card.owner == KillWord) then [("color", "white")] else []
-  in
-    style <|
-      [ ("height", "90px")
-      , ("width", "180px")
-      , ("display", "inline-block")
-      , ("background-color", cardColor card)
-      , ("position", "relative")
-      , ("margin", "1px")
-      , ("border", "5px solid " ++ borderColor card)
-      , ("border-radius", "20px")
-      , ("text-align", "center")
-      , ("line-height", "270%")
-      , ("font-size", "30px")
-      , ("overflow", "hidden")
-      ]
-      ++ fontColor card
-      ++ [("cursor", if isOver then "default" else "pointer")]
+teamBackgroundColor : Team -> String
+teamBackgroundColor team =
+    case team of
+        Blue -> "#ACC" --lightblue
+        Red -> "#E88" --lightred
+    
+
+cardStyle : Card -> Bool -> Attribute msg
+cardStyle card isGameOver =
+    let
+        fontColor =
+            if (card.revealed && card.cardType == KillWord)
+                then "white" 
+                else "black"
+        borderColor =
+            if card.mouseOver
+                then "#5AF"
+                else "Black"
+        displayColor =
+            if card.revealed
+                then cardColor card.cardType
+                else "rgb(240,232,196)" --Beige
+        cursor =
+            if isGameOver
+                then "default"
+                else "pointer"
+    in
+        style
+            [ ("cursor", cursor)
+            , ("border", "5px solid " ++ borderColor)
+            , ("color", fontColor)
+            , ("background-color", displayColor )
+            , ("height", "90px")
+            , ("width", "180px")
+            , ("display", "inline-block")
+            , ("position", "relative")
+            , ("margin", "1px")
+            , ("border-radius", "20px")
+            , ("text-align", "center")
+            , ("line-height", "270%")
+            , ("font-size", "30px")
+            , ("overflow", "hidden")
+            ]
 
 
-borderColor card =
-  if card.mouseOver then "#5AF" else "Black"
+cardNode : Vector -> Card -> Bool -> Bool -> Html Msg
+cardNode v card hasHints isGameOver =
+    let
+        mySash =
+            if hasHints
+                then sash card.cardType
+                else text ""
+    in
+        span
+            [onClick <| Click v, onMouseEnter <| EnterTile v, onMouseLeave <| LeaveTile v, cardStyle card isGameOver]
+            [text card.word, mySash]
 
-tile : Vector -> Card -> Bool -> Bool -> Html Msg
-tile v card hasHints isOver =
-  span
-    [onClick <| Click v, onMouseEnter <| EnterTile v, onMouseLeave <| LeaveTile v, tileStyle card isOver]
-    ([text card.word] ++ if hasHints then [sash card.owner] else [])
-
-sash : Owner -> Html Msg
-sash owner =
-  div [style
-    [ ("content", "''")
-    , ("width", "10px")
-    , ("height", "50px")
-    , ("transform", "rotate(45deg)")
-    , ("position", "absolute")
-    , ("left", "8px")
-    , ("top", "-12px")
-    , ("background-color", ownerColor owner)
-    ]
-  ] []
+sash : CardType -> Html Msg
+sash cardType =
+    let
+        myStyle =
+            style
+                [ ("content", "''")
+                , ("width", "10px")
+                , ("height", "50px")
+                , ("transform", "rotate(45deg)")
+                , ("position", "absolute")
+                , ("left", "8px")
+                , ("top", "-12px")
+                , ("background-color", cardColor cardType)
+                ]
+    in
+        div [myStyle] []
 
 resetButton : Html Msg
 resetButton = button [onClick Reset] [text "Reset"]
 
 hintsButton : Bool -> Html Msg
-hintsButton slns =
-  button
-    [onClick ToggleHints, style [("width","110px")]]
-    [text <| if slns then "Hide Solutions" else "View Solutions"]
+hintsButton isHintsOn =
+    let
+        myStyle =
+            style [("width","110px")]
+        myText =
+            if isHintsOn then "Hide Solutions" else "View Solutions"
+    in
+        button [onClick ToggleHints, myStyle] [text myText]
 
 remainingBox : Model -> Team -> Html Msg
 remainingBox model team =
-  div
-    [style
-      [ ("width", "478px")
-      , ("height", "48px")
-      , ("border", if model.turn == team then "3px solid " ++ teamColor team else "1px solid black")
-      , ("display", "inline-block")
-      , ("font-size", "30px")
-      , ("text-indent", "10px")
-      , ("line-height", "45px")
-      , ("background-color", teamBackgroundColor team )
-      ]
-    ]
-    [text <| (++) "Cards remaining: " <| toString <| cardsRemaining model.board <| Team team ]
-
-teamBackgroundColor : Team -> String
-teamBackgroundColor team =
-  case team of
-    Team1 -> "#ACC" --lightblue
-    Team2 -> "#E88" --lightred
-
-cardsRemaining : Board -> Owner -> Int
-cardsRemaining board owner =
-  let
-    doesCount card = card.owner == owner && card.revealed == False
-  in
-    Grid.allVectors board
-    |> List.filter (\v -> lookupV v board |> Maybe.map doesCount |> withDefault False)
-    |> List.length
+    let
+        border =
+            (if model.turn == team then "3" else "1") ++ "px solid " ++ teamColor team
+        myStyle =
+            style
+                [ ("width", "478px")
+                , ("height", "48px")
+                , ("border", border)
+                , ("display", "inline-block")
+                , ("font-size", "30px")
+                , ("text-indent", "10px")
+                , ("line-height", "45px")
+                , ("background-color", teamBackgroundColor team )
+                ]
+        str =
+            (++) "Cards remaining: " <| toString <| cardsRemaining model.board <| Team team
+    in
+        div [myStyle] [text str]
 
 wordListButton : WordList -> Html Msg
 wordListButton wl =
-  span
-    []
-    [ Html.input [type_ "radio", name "wordList", onClick <| SetWordList wl, checked <| wl == NormalWords] []
-    , text <| toString wl
-    ]
+    let
+        (text_, title_) =
+            case wl of
+                EasyWords -> ("Easy Words", "499 short words")
+                NormalWords -> ("Normal Words", "499 medium words")
+                OriginalWords -> ("Original Words", "400 original words")
+
+        button_ = Html.input [type_ "radio", title title_, name "wordList", onClick <| SetWordList wl, checked <| wl == NormalWords] []
+
+    in
+        div [] [button_, text text_]
 
 view : Model -> Html Msg
 view model =
-  div
-    []
-    <|
-    [ resetButton, hintsButton model.hints
-    , Html.br [] [], wordListButton SmallWords, wordListButton NormalWords, wordListButton OriginalWords
-    , render (\a b -> tile a b model.hints model.isOver) model.board
-    , remainingBox model Team1, remainingBox model Team2]
+    let
+        menuButtons =
+            div [] [resetButton, hintsButton model.hints]
+        wordListButtons =
+            div [] [wordListButton EasyWords, wordListButton NormalWords, wordListButton OriginalWords]
+        buttonArea =
+            div [] [menuButtons, wordListButtons]
+        cardArea =
+            Grid.render (\a b -> cardNode a b model.hints model.isGameOver) model.board
+        infoArea =
+            div [] [remainingBox model Blue, remainingBox model Red]
+    in
+        div [] [buttonArea, cardArea, infoArea]
