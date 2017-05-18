@@ -1,0 +1,771 @@
+var _user$project$Main$cardsRemaining = F2(
+	function (board, owner) {
+		var doesCount = function (card) {
+			return _elm_lang$core$Native_Utils.eq(card.owner, owner) && _elm_lang$core$Native_Utils.eq(card.revealed, false);
+		};
+		return _elm_lang$core$List$length(
+			A2(
+				_elm_lang$core$List$filter,
+				function (v) {
+					return A2(
+						_elm_lang$core$Maybe$withDefault,
+						false,
+						A2(
+							_elm_lang$core$Maybe$map,
+							doesCount,
+							A2(_user$project$Grid$lookupV, v, board)));
+				},
+				_user$project$Grid$allVectors(board)));
+	});
+var _user$project$Main$teamBackgroundColor = function (team) {
+	var _p0 = team;
+	if (_p0.ctor === 'Team1') {
+		return '#ACC';
+	} else {
+		return '#E88';
+	}
+};
+var _user$project$Main$borderColor = function (card) {
+	return card.mouseOver ? '#5AF' : 'Black';
+};
+var _user$project$Main$teamColor = function (t) {
+	var _p1 = t;
+	if (_p1.ctor === 'Team1') {
+		return 'Blue';
+	} else {
+		return 'Red';
+	}
+};
+var _user$project$Main$ownerColor = function (o) {
+	var _p2 = o;
+	switch (_p2.ctor) {
+		case 'Blank':
+			return 'Gray';
+		case 'KillWord':
+			return 'Black';
+		default:
+			return _user$project$Main$teamColor(_p2._0);
+	}
+};
+var _user$project$Main$sash = function (owner) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'content', _1: '\'\''},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'width', _1: '10px'},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'height', _1: '50px'},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'transform', _1: 'rotate(45deg)'},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
+									_1: {
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'left', _1: '8px'},
+										_1: {
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'top', _1: '-12px'},
+											_1: {
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: 'background-color',
+													_1: _user$project$Main$ownerColor(owner)
+												},
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}),
+			_1: {ctor: '[]'}
+		},
+		{ctor: '[]'});
+};
+var _user$project$Main$cardColor = function (card) {
+	return card.revealed ? _user$project$Main$ownerColor(card.owner) : 'rgb(240,232,196)';
+};
+var _user$project$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
+};
+var _user$project$Main$reveal = F2(
+	function (v, model) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			model,
+			A2(
+				_elm_lang$core$Maybe$andThen,
+				function (card) {
+					return _elm_lang$core$Maybe$Just(
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								board: A3(
+									_user$project$Grid$setV,
+									v,
+									_elm_lang$core$Native_Utils.update(
+										card,
+										{revealed: true}),
+									model.board)
+							}));
+				},
+				A2(_user$project$Grid$lookupV, v, model.board)));
+	});
+var _user$project$Main$setCardWords = F2(
+	function (list, board) {
+		var index = function (v) {
+			return _user$project$Vector$getX(v) + (5 * _user$project$Vector$getY(v));
+		};
+		return A2(
+			_user$project$Grid$indexedMap,
+			F2(
+				function (v, card) {
+					return _elm_lang$core$Native_Utils.update(
+						card,
+						{
+							word: A2(
+								_elm_lang$core$Maybe$withDefault,
+								'ERROR',
+								A2(
+									_user$project$RandomList$get,
+									index(v),
+									list))
+						});
+				}),
+			board);
+	});
+var _user$project$Main$setMouseOver = F2(
+	function (b, card) {
+		return _elm_lang$core$Native_Utils.update(
+			card,
+			{mouseOver: b});
+	});
+var _user$project$Main$getWordList = function (wl) {
+	var _p3 = wl;
+	switch (_p3.ctor) {
+		case 'SmallWords':
+			return _user$project$WordLists$small_words;
+		case 'NormalWords':
+			return _user$project$WordLists$words;
+		default:
+			return _user$project$WordLists$original;
+	}
+};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {board: a, turn: b, hints: c, isOver: d, wordList: e};
+	});
+var _user$project$Main$Card = F4(
+	function (a, b, c, d) {
+		return {word: a, owner: b, revealed: c, mouseOver: d};
+	});
+var _user$project$Main$Team2 = {ctor: 'Team2'};
+var _user$project$Main$Team1 = {ctor: 'Team1'};
+var _user$project$Main$otherTeam = function (team) {
+	var _p4 = team;
+	if (_p4.ctor === 'Team1') {
+		return _user$project$Main$Team2;
+	} else {
+		return _user$project$Main$Team1;
+	}
+};
+var _user$project$Main$passTurn = function (model) {
+	return _elm_lang$core$Native_Utils.update(
+		model,
+		{
+			turn: _elm_lang$core$Native_Utils.eq(model.turn, _user$project$Main$Team1) ? _user$project$Main$Team2 : _user$project$Main$Team1
+		});
+};
+var _user$project$Main$Team = function (a) {
+	return {ctor: 'Team', _0: a};
+};
+var _user$project$Main$remainingBox = F2(
+	function (model, team) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'width', _1: '478px'},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'height', _1: '48px'},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'border',
+									_1: _elm_lang$core$Native_Utils.eq(model.turn, team) ? A2(
+										_elm_lang$core$Basics_ops['++'],
+										'3px solid ',
+										_user$project$Main$teamColor(team)) : '1px solid black'
+								},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
+									_1: {
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
+										_1: {
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'text-indent', _1: '10px'},
+											_1: {
+												ctor: '::',
+												_0: {ctor: '_Tuple2', _0: 'line-height', _1: '45px'},
+												_1: {
+													ctor: '::',
+													_0: {
+														ctor: '_Tuple2',
+														_0: 'background-color',
+														_1: _user$project$Main$teamBackgroundColor(team)
+													},
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(
+					A2(
+						F2(
+							function (x, y) {
+								return A2(_elm_lang$core$Basics_ops['++'], x, y);
+							}),
+						'Cards remaining: ',
+						_elm_lang$core$Basics$toString(
+							A2(
+								_user$project$Main$cardsRemaining,
+								model.board,
+								_user$project$Main$Team(team))))),
+				_1: {ctor: '[]'}
+			});
+	});
+var _user$project$Main$KillWord = {ctor: 'KillWord'};
+var _user$project$Main$endGame = function (model) {
+	var remaining = _user$project$Main$cardsRemaining(model.board);
+	return A2(
+		_elm_lang$core$List$any,
+		function (_p5) {
+			return A2(
+				F2(
+					function (x, y) {
+						return _elm_lang$core$Native_Utils.eq(x, y);
+					}),
+				0,
+				remaining(_p5));
+		},
+		{
+			ctor: '::',
+			_0: _user$project$Main$Team(_user$project$Main$Team1),
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$Team(_user$project$Main$Team2),
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$KillWord,
+					_1: {ctor: '[]'}
+				}
+			}
+		}) ? _elm_lang$core$Native_Utils.update(
+		model,
+		{isOver: true}) : model;
+};
+var _user$project$Main$tileStyle = F2(
+	function (card, isOver) {
+		var fontColor = function (card) {
+			return (card.revealed && _elm_lang$core$Native_Utils.eq(card.owner, _user$project$Main$KillWord)) ? {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'color', _1: 'white'},
+				_1: {ctor: '[]'}
+			} : {ctor: '[]'};
+		};
+		return _elm_lang$html$Html_Attributes$style(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'height', _1: '90px'},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'width', _1: '180px'},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'background-color',
+									_1: _user$project$Main$cardColor(card)
+								},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'position', _1: 'relative'},
+									_1: {
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'margin', _1: '1px'},
+										_1: {
+											ctor: '::',
+											_0: {
+												ctor: '_Tuple2',
+												_0: 'border',
+												_1: A2(
+													_elm_lang$core$Basics_ops['++'],
+													'5px solid ',
+													_user$project$Main$borderColor(card))
+											},
+											_1: {
+												ctor: '::',
+												_0: {ctor: '_Tuple2', _0: 'border-radius', _1: '20px'},
+												_1: {
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+													_1: {
+														ctor: '::',
+														_0: {ctor: '_Tuple2', _0: 'line-height', _1: '270%'},
+														_1: {
+															ctor: '::',
+															_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
+															_1: {
+																ctor: '::',
+																_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
+																_1: {ctor: '[]'}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					fontColor(card),
+					{
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'cursor',
+							_1: isOver ? 'default' : 'pointer'
+						},
+						_1: {ctor: '[]'}
+					})));
+	});
+var _user$project$Main$Blank = {ctor: 'Blank'};
+var _user$project$Main$ownerList = function (activeTeam) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_elm_lang$core$List$repeat,
+			9,
+			_user$project$Main$Team(activeTeam)),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			A2(
+				_elm_lang$core$List$repeat,
+				8,
+				_user$project$Main$Team(
+					_user$project$Main$otherTeam(activeTeam))),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(_elm_lang$core$List$repeat, 7, _user$project$Main$Blank),
+				_elm_lang$core$List$singleton(_user$project$Main$KillWord))));
+};
+var _user$project$Main$dummyCard = {word: 'test', owner: _user$project$Main$Blank, revealed: false, mouseOver: false};
+var _user$project$Main$blankBoard = A3(_user$project$Grid$grid, 5, 5, _user$project$Main$dummyCard);
+var _user$project$Main$setMouseOver2 = F3(
+	function (b, v, board) {
+		return A4(
+			F4(
+				function (a, b, c, d) {
+					return A3(a, b, d, c);
+				}),
+			_user$project$Grid$setV,
+			v,
+			board,
+			A2(
+				_user$project$Main$setMouseOver,
+				b,
+				A2(
+					_elm_lang$core$Maybe$withDefault,
+					_user$project$Main$dummyCard,
+					A2(_user$project$Grid$lookupV, v, board))));
+	});
+var _user$project$Main$click = F2(
+	function (v, model) {
+		if (model.isOver) {
+			return model;
+		} else {
+			var card = A2(
+				_elm_lang$core$Maybe$withDefault,
+				_user$project$Main$dummyCard,
+				A2(_user$project$Grid$lookupV, v, model.board));
+			return card.revealed ? model : _user$project$Main$endGame(
+				A2(
+					_user$project$Main$reveal,
+					v,
+					function () {
+						var _p6 = card.owner;
+						switch (_p6.ctor) {
+							case 'Blank':
+								return _user$project$Main$passTurn(model);
+							case 'KillWord':
+								return _user$project$Main$passTurn(model);
+							default:
+								return (!_elm_lang$core$Native_Utils.eq(_p6._0, model.turn)) ? _user$project$Main$passTurn(model) : model;
+						}
+					}()));
+		}
+	});
+var _user$project$Main$setCardOwners = F2(
+	function (list, board) {
+		var index = function (v) {
+			return _user$project$Vector$getX(v) + (5 * _user$project$Vector$getY(v));
+		};
+		return A2(
+			_user$project$Grid$indexedMap,
+			F2(
+				function (v, card) {
+					return _elm_lang$core$Native_Utils.update(
+						card,
+						{
+							owner: A2(
+								_elm_lang$core$Maybe$withDefault,
+								_user$project$Main$Blank,
+								A2(
+									_user$project$RandomList$get,
+									index(v),
+									list))
+						});
+				}),
+			board);
+	});
+var _user$project$Main$OriginalWords = {ctor: 'OriginalWords'};
+var _user$project$Main$NormalWords = {ctor: 'NormalWords'};
+var _user$project$Main$newModel = {board: _user$project$Main$blankBoard, turn: _user$project$Main$Team1, hints: false, isOver: false, wordList: _user$project$Main$NormalWords};
+var _user$project$Main$SmallWords = {ctor: 'SmallWords'};
+var _user$project$Main$LeaveTile = function (a) {
+	return {ctor: 'LeaveTile', _0: a};
+};
+var _user$project$Main$EnterTile = function (a) {
+	return {ctor: 'EnterTile', _0: a};
+};
+var _user$project$Main$Reset = {ctor: 'Reset'};
+var _user$project$Main$resetButton = A2(
+	_elm_lang$html$Html$button,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Reset),
+		_1: {ctor: '[]'}
+	},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('Reset'),
+		_1: {ctor: '[]'}
+	});
+var _user$project$Main$ToggleHints = {ctor: 'ToggleHints'};
+var _user$project$Main$hintsButton = function (slns) {
+	return A2(
+		_elm_lang$html$Html$button,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$ToggleHints),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'width', _1: '110px'},
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(
+				slns ? 'Hide Solutions' : 'View Solutions'),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$Main$SetWordList = function (a) {
+	return {ctor: 'SetWordList', _0: a};
+};
+var _user$project$Main$wordListButton = function (wl) {
+	return A2(
+		_elm_lang$html$Html$span,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$input,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$type_('radio'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$name('wordList'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(
+								_user$project$Main$SetWordList(wl)),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$checked(
+									_elm_lang$core$Native_Utils.eq(wl, _user$project$Main$NormalWords)),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(
+					_elm_lang$core$Basics$toString(wl)),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Main$SetCardWords = function (a) {
+	return {ctor: 'SetCardWords', _0: a};
+};
+var _user$project$Main$randomWords = function (wl) {
+	return A2(
+		_elm_lang$core$Random$generate,
+		_user$project$Main$SetCardWords,
+		_user$project$RandomList$shuffle(
+			_user$project$Main$getWordList(wl)));
+};
+var _user$project$Main$SetCardOwners = function (a) {
+	return {ctor: 'SetCardOwners', _0: a};
+};
+var _user$project$Main$randomCards = function (t) {
+	return A2(
+		_elm_lang$core$Random$generate,
+		_user$project$Main$SetCardOwners,
+		_user$project$RandomList$shuffle(
+			_user$project$Main$ownerList(t)));
+};
+var _user$project$Main$SetTeam = function (a) {
+	return {ctor: 'SetTeam', _0: a};
+};
+var _user$project$Main$randomTeam = A2(
+	_elm_lang$core$Random$generate,
+	_user$project$Main$SetTeam,
+	A2(
+		_elm_lang$core$Random$map,
+		function (b) {
+			return b ? _user$project$Main$Team1 : _user$project$Main$Team2;
+		},
+		_elm_lang$core$Random$bool));
+var _user$project$Main$reset = function (model) {
+	return A2(
+		_elm_lang$core$Platform_Cmd_ops['!'],
+		_elm_lang$core$Native_Utils.update(
+			_user$project$Main$newModel,
+			{wordList: model.wordList}),
+		{
+			ctor: '::',
+			_0: _user$project$Main$randomTeam,
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$randomWords(model.wordList),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Main$init = _user$project$Main$reset(_user$project$Main$newModel);
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p7 = msg;
+		switch (_p7.ctor) {
+			case 'Click':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					A2(_user$project$Main$click, _p7._0, model),
+					{ctor: '[]'});
+			case 'SetTeam':
+				var _p8 = _p7._0;
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{turn: _p8}),
+					{
+						ctor: '::',
+						_0: _user$project$Main$randomCards(_p8),
+						_1: {ctor: '[]'}
+					});
+			case 'SetCardOwners':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							board: A2(_user$project$Main$setCardOwners, _p7._0, model.board)
+						}),
+					{ctor: '[]'});
+			case 'SetCardWords':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							board: A2(_user$project$Main$setCardWords, _p7._0, model.board)
+						}),
+					{ctor: '[]'});
+			case 'SetWordList':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{wordList: _p7._0}),
+					{ctor: '[]'});
+			case 'ToggleHints':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{hints: !model.hints}),
+					{ctor: '[]'});
+			case 'Reset':
+				return _user$project$Main$reset(model);
+			case 'EnterTile':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							board: A3(_user$project$Main$setMouseOver2, true, _p7._0, model.board)
+						}),
+					{ctor: '[]'});
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							board: A3(_user$project$Main$setMouseOver2, false, _p7._0, model.board)
+						}),
+					{ctor: '[]'});
+		}
+	});
+var _user$project$Main$Click = function (a) {
+	return {ctor: 'Click', _0: a};
+};
+var _user$project$Main$tile = F4(
+	function (v, card, hasHints, isOver) {
+		return A2(
+			_elm_lang$html$Html$span,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onClick(
+					_user$project$Main$Click(v)),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onMouseEnter(
+						_user$project$Main$EnterTile(v)),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onMouseLeave(
+							_user$project$Main$LeaveTile(v)),
+						_1: {
+							ctor: '::',
+							_0: A2(_user$project$Main$tileStyle, card, isOver),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			},
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(card.word),
+					_1: {ctor: '[]'}
+				},
+				hasHints ? {
+					ctor: '::',
+					_0: _user$project$Main$sash(card.owner),
+					_1: {ctor: '[]'}
+				} : {ctor: '[]'}));
+	});
+var _user$project$Main$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: _user$project$Main$resetButton,
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$hintsButton(model.hints),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$br,
+						{ctor: '[]'},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: _user$project$Main$wordListButton(_user$project$Main$SmallWords),
+						_1: {
+							ctor: '::',
+							_0: _user$project$Main$wordListButton(_user$project$Main$NormalWords),
+							_1: {
+								ctor: '::',
+								_0: _user$project$Main$wordListButton(_user$project$Main$OriginalWords),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_user$project$Grid$render,
+										F2(
+											function (a, b) {
+												return A4(_user$project$Main$tile, a, b, model.hints, model.isOver);
+											}),
+										model.board),
+									_1: {
+										ctor: '::',
+										_0: A2(_user$project$Main$remainingBox, model, _user$project$Main$Team1),
+										_1: {
+											ctor: '::',
+											_0: A2(_user$project$Main$remainingBox, model, _user$project$Main$Team2),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		});
+};
+var _user$project$Main$main = _elm_lang$html$Html$program(
+	{init: _user$project$Main$init, view: _user$project$Main$view, update: _user$project$Main$update, subscriptions: _user$project$Main$subscriptions})();

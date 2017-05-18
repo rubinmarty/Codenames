@@ -1,0 +1,130 @@
+var _user$project$Grid$indexedMap = F2(
+	function (f, grid) {
+		return A2(
+			_elm_lang$core$List$indexedMap,
+			function (y) {
+				return _elm_lang$core$List$indexedMap(
+					_elm_lang$core$Basics$flip(
+						_elm_lang$core$Basics$curry(f))(y));
+			},
+			grid);
+	});
+var _user$project$Grid$render = F2(
+	function (f, grid) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'font-size', _1: '0px'},
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$List$map,
+				_elm_lang$html$Html$div(
+					{ctor: '[]'}),
+				A2(_user$project$Grid$indexedMap, f, grid)));
+	});
+var _user$project$Grid$map = F2(
+	function (f, grid) {
+		return A2(
+			_elm_lang$core$List$map,
+			_elm_lang$core$List$map(f),
+			grid);
+	});
+var _user$project$Grid$set = F4(
+	function (x, y, val, grid) {
+		var set_ = F3(
+			function (x_, val_, m_list_) {
+				var _p0 = m_list_;
+				if (_p0.ctor === 'Nothing') {
+					return {ctor: '[]'};
+				} else {
+					var _p1 = _p0._0;
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$core$Basics_ops['++'],
+							A2(_elm_lang$core$List$take, x_, _p1),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								{
+									ctor: '::',
+									_0: val_,
+									_1: {ctor: '[]'}
+								},
+								A2(_elm_lang$core$List$drop, x_ + 1, _p1))),
+						_1: {ctor: '[]'}
+					};
+				}
+			});
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			A2(_elm_lang$core$List$take, y, grid),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A3(
+					set_,
+					x,
+					val,
+					_elm_lang$core$List$head(
+						A2(_elm_lang$core$List$drop, y, grid))),
+				A2(_elm_lang$core$List$drop, y + 1, grid)));
+	});
+var _user$project$Grid$setV = _elm_lang$core$Basics$uncurry(_user$project$Grid$set);
+var _user$project$Grid$lookup = F3(
+	function (x, y, grid) {
+		return A2(
+			_elm_lang$core$Maybe$andThen,
+			_elm_lang$core$List$head,
+			A2(
+				_elm_lang$core$Maybe$andThen,
+				function (_p2) {
+					return _elm_lang$core$Maybe$Just(
+						A2(_elm_lang$core$List$drop, x, _p2));
+				},
+				_elm_lang$core$List$head(
+					A2(_elm_lang$core$List$drop, y, grid))));
+	});
+var _user$project$Grid$lookupV = _elm_lang$core$Basics$uncurry(_user$project$Grid$lookup);
+var _user$project$Grid$length = function (grid) {
+	return _elm_lang$core$List$length(
+		A2(
+			_elm_lang$core$Maybe$withDefault,
+			{ctor: '[]'},
+			_elm_lang$core$List$head(grid)));
+};
+var _user$project$Grid$height = function (grid) {
+	return _elm_lang$core$List$length(grid);
+};
+var _user$project$Grid$allVectors = function (grid) {
+	var x = _user$project$Grid$length(grid);
+	var y = _user$project$Grid$height(grid);
+	var xs = A2(_elm_lang$core$List$range, 0, x);
+	var ys = A2(_elm_lang$core$List$range, 0, y);
+	var zip = _elm_lang$core$List$map2(
+		F2(
+			function (v0, v1) {
+				return {ctor: '_Tuple2', _0: v0, _1: v1};
+			}));
+	return A2(
+		_elm_lang$core$List$concatMap,
+		function (i) {
+			return A2(
+				zip,
+				A2(_elm_lang$core$List$repeat, y, i),
+				ys);
+		},
+		xs);
+};
+var _user$project$Grid$grid = F3(
+	function (x, y, v) {
+		return A2(
+			_elm_lang$core$List$repeat,
+			y,
+			A2(_elm_lang$core$List$repeat, x, v));
+	});
