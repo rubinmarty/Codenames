@@ -1,0 +1,53 @@
+var _user$project$Types$Model = F5(
+	function (a, b, c, d, e) {
+		return {board: a, turn: b, hints: c, isGameOver: d, wordList: e};
+	});
+var _user$project$Types$Card = F4(
+	function (a, b, c, d) {
+		return {word: a, cardType: b, revealed: c, mouseOver: d};
+	});
+var _user$project$Types$Red = {ctor: 'Red'};
+var _user$project$Types$Blue = {ctor: 'Blue'};
+var _user$project$Types$otherTeam = function (team) {
+	var _p0 = team;
+	if (_p0.ctor === 'Blue') {
+		return _user$project$Types$Red;
+	} else {
+		return _user$project$Types$Blue;
+	}
+};
+var _user$project$Types$Team = function (a) {
+	return {ctor: 'Team', _0: a};
+};
+var _user$project$Types$KillWord = {ctor: 'KillWord'};
+var _user$project$Types$Blank = {ctor: 'Blank'};
+var _user$project$Types$dummyCard = {word: 'test', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
+var _user$project$Types$OriginalWords = {ctor: 'OriginalWords'};
+var _user$project$Types$NormalWords = {ctor: 'NormalWords'};
+var _user$project$Types$EasyWords = {ctor: 'EasyWords'};
+var _user$project$Types$NewMessage = function (a) {
+	return {ctor: 'NewMessage', _0: a};
+};
+var _user$project$Types$LeaveTile = function (a) {
+	return {ctor: 'LeaveTile', _0: a};
+};
+var _user$project$Types$EnterTile = function (a) {
+	return {ctor: 'EnterTile', _0: a};
+};
+var _user$project$Types$Reset = {ctor: 'Reset'};
+var _user$project$Types$ToggleHints = {ctor: 'ToggleHints'};
+var _user$project$Types$SetWordList = function (a) {
+	return {ctor: 'SetWordList', _0: a};
+};
+var _user$project$Types$SetCardWords = function (a) {
+	return {ctor: 'SetCardWords', _0: a};
+};
+var _user$project$Types$SetCardOwners = function (a) {
+	return {ctor: 'SetCardOwners', _0: a};
+};
+var _user$project$Types$SetTeam = function (a) {
+	return {ctor: 'SetTeam', _0: a};
+};
+var _user$project$Types$Click = function (a) {
+	return {ctor: 'Click', _0: a};
+};

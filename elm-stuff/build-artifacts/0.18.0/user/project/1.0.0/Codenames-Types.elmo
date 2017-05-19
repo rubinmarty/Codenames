@@ -1,0 +1,53 @@
+var _user$project$Codenames_Types$Model = F5(
+	function (a, b, c, d, e) {
+		return {board: a, turn: b, hints: c, isGameOver: d, wordList: e};
+	});
+var _user$project$Codenames_Types$Card = F4(
+	function (a, b, c, d) {
+		return {word: a, cardType: b, revealed: c, mouseOver: d};
+	});
+var _user$project$Codenames_Types$Red = {ctor: 'Red'};
+var _user$project$Codenames_Types$Blue = {ctor: 'Blue'};
+var _user$project$Codenames_Types$otherTeam = function (team) {
+	var _p0 = team;
+	if (_p0.ctor === 'Blue') {
+		return _user$project$Codenames_Types$Red;
+	} else {
+		return _user$project$Codenames_Types$Blue;
+	}
+};
+var _user$project$Codenames_Types$Team = function (a) {
+	return {ctor: 'Team', _0: a};
+};
+var _user$project$Codenames_Types$KillWord = {ctor: 'KillWord'};
+var _user$project$Codenames_Types$Blank = {ctor: 'Blank'};
+var _user$project$Codenames_Types$dummyCard = {word: 'test', cardType: _user$project$Codenames_Types$Blank, revealed: false, mouseOver: false};
+var _user$project$Codenames_Types$OriginalWords = {ctor: 'OriginalWords'};
+var _user$project$Codenames_Types$NormalWords = {ctor: 'NormalWords'};
+var _user$project$Codenames_Types$EasyWords = {ctor: 'EasyWords'};
+var _user$project$Codenames_Types$NewMessage = function (a) {
+	return {ctor: 'NewMessage', _0: a};
+};
+var _user$project$Codenames_Types$LeaveTile = function (a) {
+	return {ctor: 'LeaveTile', _0: a};
+};
+var _user$project$Codenames_Types$EnterTile = function (a) {
+	return {ctor: 'EnterTile', _0: a};
+};
+var _user$project$Codenames_Types$Reset = {ctor: 'Reset'};
+var _user$project$Codenames_Types$ToggleHints = {ctor: 'ToggleHints'};
+var _user$project$Codenames_Types$SetWordList = function (a) {
+	return {ctor: 'SetWordList', _0: a};
+};
+var _user$project$Codenames_Types$SetCardWords = function (a) {
+	return {ctor: 'SetCardWords', _0: a};
+};
+var _user$project$Codenames_Types$SetCardOwners = function (a) {
+	return {ctor: 'SetCardOwners', _0: a};
+};
+var _user$project$Codenames_Types$SetTeam = function (a) {
+	return {ctor: 'SetTeam', _0: a};
+};
+var _user$project$Codenames_Types$Click = function (a) {
+	return {ctor: 'Click', _0: a};
+};

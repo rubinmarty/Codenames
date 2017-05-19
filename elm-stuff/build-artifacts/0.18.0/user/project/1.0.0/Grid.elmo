@@ -29,6 +29,16 @@ var _user$project$Grid$render = F2(
 					{ctor: '[]'}),
 				A2(_user$project$Grid$indexedMap, f, grid)));
 	});
+var _user$project$Grid$mapAtV = F3(
+	function (f, v, grid) {
+		return A2(
+			_user$project$Grid$indexedMap,
+			F2(
+				function (v2, elt) {
+					return _elm_lang$core$Native_Utils.eq(v, v2) ? f(elt) : elt;
+				}),
+			grid);
+	});
 var _user$project$Grid$map = F2(
 	function (f, grid) {
 		return A2(
