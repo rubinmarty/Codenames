@@ -17,7 +17,6 @@ main =
         }
 
 
-
 -- MODEL
 
 
@@ -123,23 +122,26 @@ update msg model =
         Reset ->
             reset model
         EnterTile v ->
-            {model | board = setMouseOver2 True v model.board} ! []
+            {model | board = setMouseOver True v model.board} ! []
         LeaveTile v ->
-            {model | board = setMouseOver2 False v model.board} ! []
+            {model | board = setMouseOver False v model.board} ! []
 
-setMouseOver : Bool -> Card -> Card
-setMouseOver b card =
+withMouseOver : Bool -> Card -> Card
+withMouseOver b card =
     {card | mouseOver = b}
 
-setMouseOver2 : Bool -> Vector -> Board -> Board
-setMouseOver2 b v board =
+setMouseOver : Bool -> Vector -> Board -> Board
+setMouseOver b v board =
     lookupV v board
-    |> withDefault dummyCard
-    |> setMouseOver b
-    |> (\a b c d-> a b d c) setV v board 
+    |> Maybe.map (\card -> withMouseOver b card)
+    |> Maybe.map (\card -> setV v card board)
+    |> withDefault board
 
 randomTeam : Cmd Msg
-randomTeam = Random.generate SetTeam (Random.map (\b -> if b then Blue else Red) Random.bool)
+randomTeam =
+    Random.bool
+    |> Random.map (\b -> if b then Blue else Red)
+    |> Random.generate SetTeam
 
 randomCards : Team -> Cmd Msg
 randomCards t =
@@ -151,61 +153,75 @@ randomWords wl =
 
 setCardOwners : List CardType -> Board -> Board
 setCardOwners list board =
-    let index v = (getX v) + (5 * getY v) in
-    board
-    |> Grid.indexedMap (\v card -> {card | cardType = withDefault Blank <| get (index v) list})
+    let
+        index v =
+            (getX v) + (5 * getY v)
+        setOwner v card =
+            {card | cardType = withDefault Blank <| flip get list <| index v}
+    in
+        Grid.indexedMap setOwner board
 
 setCardWords : List String -> Board -> Board
 setCardWords list board =
-    let index v = (getX v) + (5 * getY v) in
-    board
-    |> Grid.indexedMap (\v card -> {card | word = withDefault "ERROR" <| get (index v) list})
+    let
+        index v =
+            (getX v) + (5 * getY v)
+        setWord v card =
+            {card | word = withDefault "ERROR" <| flip get list <| index v}
+    in
+        Grid.indexedMap setWord board
 
 reveal : Vector -> Model -> Model
 reveal v model =
-    lookupV v model.board
-    |> andThen (\card -> Just 
-        {model |
-            board = setV v {card | revealed = True} model.board}
-    )
-    |> withDefault model
+    let
+        setRevealed card = 
+            {card | revealed = True}
+    in
+        {model | board = Grid.mapAtV setRevealed v model.board}
+
 
 passTurn : Model -> Model
 passTurn model =
-    {model | turn = if model.turn == Blue then Red else Blue}
+    {model | turn = otherTeam model.turn}
 
 cardsRemaining : Board -> CardType -> Int
 cardsRemaining board cardType =
     let
-        doesCount card = card.cardType == cardType && card.revealed == False
+        doesCount card =
+            card.cardType == cardType && card.revealed == False
+        doesCount_ v =
+            lookupV v board
+            |> Maybe.map doesCount
+            |> withDefault False
     in
         Grid.allVectors board
-        |> List.filter (\v -> lookupV v board |> Maybe.map doesCount |> withDefault False)
+        |> List.filter doesCount_
         |> List.length
 
 endGame : Model -> Model
 endGame model =
     let
-        remaining = cardsRemaining model.board
+        noneRemaining : CardType -> Bool
+        noneRemaining = ((==) 0) << cardsRemaining model.board
     in
-        if List.any ((==) 0 << remaining) [Team Blue, Team Red, KillWord]
-        then {model | isGameOver = True}
-        else model
+        if List.any noneRemaining [Team Blue, Team Red, KillWord]
+            then {model | isGameOver = True}
+            else model
 
 click : Vector -> Model -> Model
 click v model =
-    if model.isGameOver then model else
-    let card = lookupV v model.board |> withDefault dummyCard in
-    if card.revealed then model else
-    endGame <|
-    reveal v <|
-    case card.cardType of
-        Blank -> passTurn model
-        KillWord -> passTurn model
-        Team t -> if t /= model.turn
-            then passTurn model
-            else model
-
+    lookupV v model.board
+    |> andThen (\card -> if model.isGameOver then Nothing else Just card)
+    |> andThen (\card -> if card.revealed then Nothing else Just card)
+    |> Maybe.map (\card -> case card.cardType of
+                                Blank -> passTurn model
+                                KillWord -> passTurn model
+                                Team t -> if t /= model.turn
+                                    then passTurn model
+                                    else model)
+    |> Maybe.map (reveal v)
+    |> Maybe.map (endGame)
+    |> withDefault model
 
 
 -- SUBSCRIPTIONS
@@ -332,7 +348,7 @@ remainingBox model team =
                 , ("background-color", teamBackgroundColor team )
                 ]
         str =
-            (++) "Cards remaining: " <| toString <| cardsRemaining model.board <| Team team
+            (++) "Cards Remaining: " <| toString <| cardsRemaining model.board <| Team team
     in
         div [myStyle] [text str]
 

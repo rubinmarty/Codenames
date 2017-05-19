@@ -1,4 +1,4 @@
-module Grid exposing (Grid, grid, lookup, lookupV, set, setV, allVectors, render, indexedMap)
+module Grid exposing (Grid, grid, lookup, lookupV, set, setV, allVectors, render, indexedMap, mapAtV)
 
 import Vector exposing (..)
 import List exposing (drop, head, take, repeat, concatMap, repeat, range)
@@ -65,6 +65,9 @@ map : (a -> b) -> Grid a -> Grid b
 map f grid =
   List.map (List.map f) grid
 
+mapAtV : (a -> a) -> Vector -> Grid a -> Grid a 
+mapAtV f v grid =
+  indexedMap (\v2 elt -> if v==v2 then f elt else elt) grid
 
 indexedMap : (Vector -> a -> b) -> Grid a -> Grid b
 indexedMap f grid =

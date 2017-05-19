@@ -32,9 +32,3 @@ scale i v =
 innerProduct : Vector -> Vector -> Int
 innerProduct v w =
   (getX v * getX w + getY v * getY w)
-
-{-
-toString : Vector -> String
-toString v =
-  "(" ++ (Basics.toString <| getX v) ++ "," ++ (Basics.toString <| getY v) ++ ")"
--}
