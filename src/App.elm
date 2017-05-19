@@ -1,12 +1,13 @@
 module App exposing (app)
 
-import State exposing (..)
+import Navigation
+import State exposing (init, update, subscriptions)
 import View exposing (view)
+import Types exposing (Msg(UrlChange))
 
-import Html
 
 app =
-    Html.program
+    Navigation.program UrlChange
         { init = init
         , view = view
         , update = update
