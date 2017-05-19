@@ -28,7 +28,7 @@ newModel =
 
 init : Navigation.Location -> (Model, Cmd Msg)
 init location =
-    { newModel | serverAddress = "ws://" ++ location.host } ! []
+    { newModel | serverAddress = "wss://" ++ location.host } ! []
 
 reset : Model -> Cmd Msg
 reset model =
