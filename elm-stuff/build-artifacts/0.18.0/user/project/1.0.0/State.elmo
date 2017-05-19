@@ -361,6 +361,7 @@ var _user$project$State$update = F2(
 						}),
 					{ctor: '[]'});
 			default:
+				var _p10 = _p7._0;
 				var updateIf = F3(
 					function (f, b, model) {
 						return b ? f(model) : model;
@@ -374,7 +375,6 @@ var _user$project$State$update = F2(
 							return A2(f, _p8._0, model);
 						}
 					});
-				var mtr_ = A2(_elm_lang$core$Maybe$withDefault, _user$project$Types$blank, _p7._0);
 				var newModel = A3(
 					updateIf,
 					function (_p9) {
@@ -383,13 +383,13 @@ var _user$project$State$update = F2(
 					},
 					function (_) {
 						return _.reset;
-					}(mtr_),
+					}(_p10),
 					A3(
 						updateIf,
 						_user$project$State$setGameOver(true),
 						function (_) {
 							return _.isGameOver;
-						}(mtr_),
+						}(_p10),
 						A3(
 							updateMaybe,
 							F2(
@@ -400,25 +400,25 @@ var _user$project$State$update = F2(
 								}),
 							function (_) {
 								return _.turn;
-							}(mtr_),
+							}(_p10),
 							A3(
 								updateMaybe,
 								_user$project$State$click,
 								function (_) {
 									return _.click;
-								}(mtr_),
+								}(_p10),
 								A3(
 									updateMaybe,
 									_user$project$State$setCardWords,
 									function (_) {
 										return _.wordList;
-									}(mtr_),
+									}(_p10),
 									A3(
 										updateMaybe,
 										_user$project$State$setCardTypes,
 										function (_) {
 											return _.typeList;
-										}(mtr_),
+										}(_p10),
 										model))))));
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -427,12 +427,8 @@ var _user$project$State$update = F2(
 		}
 	});
 var _user$project$State$blankBoard = A3(_user$project$Grid$grid, 5, 5, _user$project$Types$dummyCard);
-var _user$project$State$newModel = {board: _user$project$State$blankBoard, turn: _user$project$Types$Blue, hints: false, isGameOver: false, wordList: _user$project$Types$NormalWords};
+var _user$project$State$newModel = {board: _user$project$State$blankBoard, turn: _user$project$Types$Blue, hints: false, isGameOver: true, wordList: _user$project$Types$NormalWords};
 var _user$project$State$init = A2(
 	_elm_lang$core$Platform_Cmd_ops['!'],
 	_user$project$State$newModel,
-	{
-		ctor: '::',
-		_0: _user$project$State$reset(_user$project$State$newModel),
-		_1: {ctor: '[]'}
-	});
+	{ctor: '[]'});

@@ -9755,7 +9755,7 @@ var _user$project$Types$Team = function (a) {
 };
 var _user$project$Types$KillWord = {ctor: 'KillWord'};
 var _user$project$Types$Blank = {ctor: 'Blank'};
-var _user$project$Types$dummyCard = {word: 'test', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
+var _user$project$Types$dummyCard = {word: '', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
 var _user$project$Types$OriginalWords = {ctor: 'OriginalWords'};
 var _user$project$Types$NormalWords = {ctor: 'NormalWords'};
 var _user$project$Types$EasyWords = {ctor: 'EasyWords'};
@@ -9977,7 +9977,10 @@ var _user$project$Sockets$subscriptions = A2(
 	_user$project$Sockets$address,
 	function (s) {
 		return _user$project$Types$ReceiveMessage(
-			_user$project$Sockets$deserialize(s));
+			A2(
+				_elm_lang$core$Maybe$withDefault,
+				_user$project$Types$blank,
+				_user$project$Sockets$deserialize(s)));
 	});
 var _user$project$Sockets$send = function (str) {
 	return A2(
@@ -16034,6 +16037,7 @@ var _user$project$State$update = F2(
 						}),
 					{ctor: '[]'});
 			default:
+				var _p10 = _p7._0;
 				var updateIf = F3(
 					function (f, b, model) {
 						return b ? f(model) : model;
@@ -16047,7 +16051,6 @@ var _user$project$State$update = F2(
 							return A2(f, _p8._0, model);
 						}
 					});
-				var mtr_ = A2(_elm_lang$core$Maybe$withDefault, _user$project$Types$blank, _p7._0);
 				var newModel = A3(
 					updateIf,
 					function (_p9) {
@@ -16056,13 +16059,13 @@ var _user$project$State$update = F2(
 					},
 					function (_) {
 						return _.reset;
-					}(mtr_),
+					}(_p10),
 					A3(
 						updateIf,
 						_user$project$State$setGameOver(true),
 						function (_) {
 							return _.isGameOver;
-						}(mtr_),
+						}(_p10),
 						A3(
 							updateMaybe,
 							F2(
@@ -16073,25 +16076,25 @@ var _user$project$State$update = F2(
 								}),
 							function (_) {
 								return _.turn;
-							}(mtr_),
+							}(_p10),
 							A3(
 								updateMaybe,
 								_user$project$State$click,
 								function (_) {
 									return _.click;
-								}(mtr_),
+								}(_p10),
 								A3(
 									updateMaybe,
 									_user$project$State$setCardWords,
 									function (_) {
 										return _.wordList;
-									}(mtr_),
+									}(_p10),
 									A3(
 										updateMaybe,
 										_user$project$State$setCardTypes,
 										function (_) {
 											return _.typeList;
-										}(mtr_),
+										}(_p10),
 										model))))));
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -16100,15 +16103,11 @@ var _user$project$State$update = F2(
 		}
 	});
 var _user$project$State$blankBoard = A3(_user$project$Grid$grid, 5, 5, _user$project$Types$dummyCard);
-var _user$project$State$newModel = {board: _user$project$State$blankBoard, turn: _user$project$Types$Blue, hints: false, isGameOver: false, wordList: _user$project$Types$NormalWords};
+var _user$project$State$newModel = {board: _user$project$State$blankBoard, turn: _user$project$Types$Blue, hints: false, isGameOver: true, wordList: _user$project$Types$NormalWords};
 var _user$project$State$init = A2(
 	_elm_lang$core$Platform_Cmd_ops['!'],
 	_user$project$State$newModel,
-	{
-		ctor: '::',
-		_0: _user$project$State$reset(_user$project$State$newModel),
-		_1: {ctor: '[]'}
-	});
+	{ctor: '[]'});
 var _user$project$View$wordListButton = function (wl) {
 	var _p0 = function () {
 		var _p1 = wl;
@@ -16352,8 +16351,12 @@ var _user$project$View$cardStyle = F2(
 																	_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'calibri, helvetica, arial, sans-serif'},
 																	_1: {
 																		ctor: '::',
-																		_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
-																		_1: {ctor: '[]'}
+																		_0: {ctor: '_Tuple2', _0: 'user-select', _1: 'none'},
+																		_1: {
+																			ctor: '::',
+																			_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
+																			_1: {ctor: '[]'}
+																		}
 																	}
 																}
 															}

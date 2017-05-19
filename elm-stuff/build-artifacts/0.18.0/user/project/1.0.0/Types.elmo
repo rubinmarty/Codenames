@@ -26,7 +26,7 @@ var _user$project$Types$Team = function (a) {
 };
 var _user$project$Types$KillWord = {ctor: 'KillWord'};
 var _user$project$Types$Blank = {ctor: 'Blank'};
-var _user$project$Types$dummyCard = {word: 'test', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
+var _user$project$Types$dummyCard = {word: '', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
 var _user$project$Types$OriginalWords = {ctor: 'OriginalWords'};
 var _user$project$Types$NormalWords = {ctor: 'NormalWords'};
 var _user$project$Types$EasyWords = {ctor: 'EasyWords'};

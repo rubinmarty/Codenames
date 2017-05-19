@@ -33,7 +33,7 @@ type alias Card =
     }
 dummyCard : Card
 dummyCard = 
-    { word = "test"
+    { word = ""
     , cardType = Blank
     , revealed = False
     , mouseOver = False
@@ -53,7 +53,7 @@ type Msg =
     | ToggleHints
     | Reset
     | MouseOverTile Bool Vector
-    | ReceiveMessage (Maybe Transmission)
+    | ReceiveMessage Transmission
 
 
 type alias Transmission =

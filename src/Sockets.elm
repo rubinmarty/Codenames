@@ -15,7 +15,7 @@ address = "ws://echo.websocket.org"
 
 subscriptions : Sub Msg
 subscriptions =
-    WebSocket.listen address (\s -> ReceiveMessage <| deserialize s)
+    WebSocket.listen address (\s -> ReceiveMessage <| Maybe.withDefault blank <| deserialize s)
 
 send : Transmission -> Cmd Msg
 send str =

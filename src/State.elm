@@ -20,13 +20,13 @@ newModel =
     { board = blankBoard
     , turn = Blue
     , hints = False
-    , isGameOver = False
+    , isGameOver = True
     , wordList = NormalWords
     }
 
 init : (Model, Cmd Msg)
 init =
-     newModel ! [reset newModel]
+     newModel ! []
 
 reset : Model -> Cmd Msg 
 reset model =
@@ -61,11 +61,8 @@ update msg model =
         MouseOverTile b v ->
             {model | board = setMouseOver b v model.board} ! []
 
-        ReceiveMessage mtr ->
+        ReceiveMessage tr ->
             let
-                mtr_ =
-                    withDefault blank mtr
-
                 updateMaybe : (a -> Model -> Model) -> Maybe a -> Model -> Model
                 updateMaybe f a model =
                     case a of
@@ -77,12 +74,12 @@ update msg model =
                     if b then f model else model
 
                 newModel = model
-                |> updateMaybe setCardTypes (.typeList mtr_)
-                |> updateMaybe setCardWords (.wordList mtr_)
-                |> updateMaybe click (.click mtr_)
-                |> updateMaybe (\a m -> {m | turn = a}) (.turn mtr_)
-                |> updateIf (setGameOver True) (.isGameOver mtr_)
-                |> updateIf (setUnrevealed << setGameOver False) (.reset mtr_)
+                |> updateMaybe setCardTypes                      (.typeList tr)
+                |> updateMaybe setCardWords                      (.wordList tr)
+                |> updateMaybe click                             (.click tr)
+                |> updateMaybe (\a m -> {m | turn = a})          (.turn tr)
+                |> updateIf (setGameOver True)                   (.isGameOver tr)
+                |> updateIf (setUnrevealed << setGameOver False) (.reset tr)
 
 
             in

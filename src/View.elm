@@ -64,6 +64,7 @@ cardStyle card isGameOver =
             , ("line-height", "270%")
             , ("font-size", "30px")
             , ("font-family", "calibri, helvetica, arial, sans-serif")
+            , ("user-select", "none")
             , ("overflow", "hidden")
             ]
 

@@ -198,7 +198,10 @@ var _user$project$Sockets$subscriptions = A2(
 	_user$project$Sockets$address,
 	function (s) {
 		return _user$project$Types$ReceiveMessage(
-			_user$project$Sockets$deserialize(s));
+			A2(
+				_elm_lang$core$Maybe$withDefault,
+				_user$project$Types$blank,
+				_user$project$Sockets$deserialize(s)));
 	});
 var _user$project$Sockets$send = function (str) {
 	return A2(
