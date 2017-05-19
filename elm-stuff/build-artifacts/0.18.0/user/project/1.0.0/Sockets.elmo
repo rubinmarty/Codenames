@@ -1,0 +1,196 @@
+var _user$project$Sockets$vectorD = A3(
+	_elm_lang$core$Json_Decode$map2,
+	F2(
+		function (v0, v1) {
+			return {ctor: '_Tuple2', _0: v0, _1: v1};
+		}),
+	_elm_lang$core$Json_Decode$int,
+	_elm_lang$core$Json_Decode$int);
+var _user$project$Sockets$teamD = function () {
+	var helper = function (str) {
+		var _p0 = str;
+		switch (_p0) {
+			case 'Red':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$Red);
+			case 'Blue':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$Blue);
+			default:
+				return _elm_lang$core$Json_Decode$fail('Invalid Team');
+		}
+	};
+	return A2(_elm_lang$core$Json_Decode$andThen, helper, _elm_lang$core$Json_Decode$string);
+}();
+var _user$project$Sockets$cardTypeD = function () {
+	var helper = function (str) {
+		var _p1 = str;
+		switch (_p1) {
+			case 'KillWord':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$KillWord);
+			case 'Blank':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$Blank);
+			case 'Team Red':
+				return _elm_lang$core$Json_Decode$succeed(
+					_user$project$Types$Team(_user$project$Types$Red));
+			case 'Team Blue':
+				return _elm_lang$core$Json_Decode$succeed(
+					_user$project$Types$Team(_user$project$Types$Blue));
+			default:
+				return _elm_lang$core$Json_Decode$fail('Invalid CardType');
+		}
+	};
+	return A2(_elm_lang$core$Json_Decode$andThen, helper, _elm_lang$core$Json_Decode$string);
+}();
+var _user$project$Sockets$nullOr = function (decoder) {
+	return _elm_lang$core$Json_Decode$oneOf(
+		{
+			ctor: '::',
+			_0: _elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
+			_1: {
+				ctor: '::',
+				_0: A2(_elm_lang$core$Json_Decode$map, _elm_lang$core$Maybe$Just, decoder),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Sockets$transmissionD = A6(
+	_elm_lang$core$Json_Decode$map5,
+	_user$project$Types$Transmission,
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'wordList',
+		_user$project$Sockets$nullOr(
+			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string))),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'typeList',
+		_user$project$Sockets$nullOr(
+			_elm_lang$core$Json_Decode$list(_user$project$Sockets$cardTypeD))),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'click',
+		_user$project$Sockets$nullOr(_user$project$Sockets$vectorD)),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'turn',
+		_user$project$Sockets$nullOr(_user$project$Sockets$teamD)),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'isGameOver',
+		_user$project$Sockets$nullOr(_elm_lang$core$Json_Decode$bool)));
+var _user$project$Sockets$teamE = function (_p2) {
+	return _elm_lang$core$Json_Encode$string(
+		_elm_lang$core$Basics$toString(_p2));
+};
+var _user$project$Sockets$cardTypeE = function (ct) {
+	return _elm_lang$core$Json_Encode$string(
+		_elm_lang$core$Basics$toString(ct));
+};
+var _user$project$Sockets$maybeE = F2(
+	function (f, m) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			_elm_lang$core$Json_Encode$null,
+			A2(_elm_lang$core$Maybe$map, f, m));
+	});
+var _user$project$Sockets$vectorE = function (v) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'x',
+				_1: _elm_lang$core$Json_Encode$int(
+					_user$project$Vector$getX(v))
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'y',
+					_1: _elm_lang$core$Json_Encode$int(
+						_user$project$Vector$getY(v))
+				},
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Sockets$transmissionE = function (tr) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'wordList',
+				_1: A2(
+					_user$project$Sockets$maybeE,
+					function (_p3) {
+						return _elm_lang$core$Json_Encode$list(
+							A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, _p3));
+					},
+					tr.wordList)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'typeList',
+					_1: A2(
+						_user$project$Sockets$maybeE,
+						function (_p4) {
+							return _elm_lang$core$Json_Encode$list(
+								A2(_elm_lang$core$List$map, _user$project$Sockets$cardTypeE, _p4));
+						},
+						tr.typeList)
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'click',
+						_1: A2(_user$project$Sockets$maybeE, _user$project$Sockets$vectorE, tr.click)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'turn',
+							_1: A2(_user$project$Sockets$maybeE, _user$project$Sockets$teamE, tr.turn)
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'isGameOver',
+								_1: A2(_user$project$Sockets$maybeE, _elm_lang$core$Json_Encode$bool, tr.isGameOver)
+							},
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		});
+};
+var _user$project$Sockets$deserialize = function (str) {
+	return _elm_lang$core$Result$toMaybe(
+		A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Sockets$transmissionD, str));
+};
+var _user$project$Sockets$serialize = function (_p5) {
+	return A2(
+		_elm_lang$core$Json_Encode$encode,
+		0,
+		_user$project$Sockets$transmissionE(_p5));
+};
+var _user$project$Sockets$address = 'ws://echo.websocket.org';
+var _user$project$Sockets$subscriptions = A2(
+	_elm_lang$websocket$WebSocket$listen,
+	_user$project$Sockets$address,
+	function (s) {
+		return _user$project$Types$ReceiveMessage(
+			_user$project$Sockets$deserialize(s));
+	});
+var _user$project$Sockets$send = function (str) {
+	return A2(
+		_elm_lang$websocket$WebSocket$send,
+		_user$project$Sockets$address,
+		_user$project$Sockets$serialize(str));
+};

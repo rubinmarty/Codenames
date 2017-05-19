@@ -76,7 +76,11 @@ cardNode v card hasHints isGameOver =
                 else text ""
     in
         span
-            [onClick <| Click v, onMouseEnter <| EnterTile v, onMouseLeave <| LeaveTile v, cardStyle card isGameOver]
+            [ onClick <| Click v
+            , onMouseEnter <| MouseOverTile True v
+            , onMouseLeave <| MouseOverTile False v
+            , cardStyle card isGameOver
+            ]
             [text card.word, mySash]
 
 sash : CardType -> Html Msg

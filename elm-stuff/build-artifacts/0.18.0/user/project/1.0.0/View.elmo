@@ -315,11 +315,11 @@ var _user$project$View$cardNode = F4(
 				_1: {
 					ctor: '::',
 					_0: _elm_lang$html$Html_Events$onMouseEnter(
-						_user$project$Types$EnterTile(v)),
+						A2(_user$project$Types$MouseOverTile, true, v)),
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseLeave(
-							_user$project$Types$LeaveTile(v)),
+							A2(_user$project$Types$MouseOverTile, false, v)),
 						_1: {
 							ctor: '::',
 							_0: A2(_user$project$View$cardStyle, card, isGameOver),

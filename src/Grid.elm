@@ -54,12 +54,14 @@ setV = uncurry set
 
 allVectors : Grid a -> List Vector
 allVectors grid =
-  let x = length grid in
-  let y = height grid in
-  let xs = range 0 x in
-  let ys = range 0 y in
-  let zip = List.map2 (,) in
-  concatMap (\i -> zip (repeat y i) ys) xs
+  let
+    x = length grid
+    y = height grid
+  in
+    range 0 x
+    |> List.concatMap (\x -> range 0 y
+      |> List.map (\y -> (x,y))
+    )
 
 map : (a -> b) -> Grid a -> Grid b
 map f grid =

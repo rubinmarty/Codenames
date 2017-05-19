@@ -14,7 +14,6 @@ type alias Model =
     }
 
 
-
 type Team = Blue | Red
 otherTeam : Team -> Team
 otherTeam team =
@@ -23,9 +22,7 @@ otherTeam team =
         Red -> Blue
 
 
-
 type CardType = Blank | KillWord | Team Team
-
 
 
 type alias Card =
@@ -43,24 +40,26 @@ dummyCard =
     }
 
 
-
 type alias Board = Grid Card
-
 
 
 type WordList = EasyWords | NormalWords | OriginalWords
 
 
-
-
 type Msg =
       Click Vector
-    | SetTeam Team
-    | SetCardOwners (List CardType)
-    | SetCardWords (List String)
+    | InitState (Team, List CardType, List String)
     | SetWordList WordList
     | ToggleHints
     | Reset
-    | EnterTile Vector
-    | LeaveTile Vector
-    | NewMessage String
+    | MouseOverTile Bool Vector
+    | ReceiveMessage (Maybe Transmission)
+
+
+type alias Transmission =
+    { wordList : Maybe (List String)
+    , typeList : Maybe (List CardType)
+    , click : Maybe Vector
+    , turn : Maybe Team
+    , isGameOver : Maybe Bool
+    }

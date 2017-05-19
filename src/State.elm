@@ -1,14 +1,14 @@
 module State exposing (..)
 
 import Types exposing (..)
+import Sockets
 import Vector exposing (..)
 import Grid exposing (..)
 import RandomList exposing (..)
 import WordLists exposing (..)
 
-import Random
+import Random exposing (Generator, pair)
 import Maybe exposing (withDefault, andThen)
-import WebSocket
 
 -- MODEL
 
@@ -30,7 +30,7 @@ init =
 
 reset : Model -> (Model, Cmd Msg)
 reset model =
-    {newModel | wordList = model.wordList} ! [randomTeam, randomWords model.wordList]
+    {newModel | wordList = model.wordList} ! [randomInitialState model.wordList]
 
 
 
@@ -42,35 +42,44 @@ update msg model =
     case msg of
         Click v ->
             click v model ! []
-        SetTeam t ->
-            {model | turn = t} ! [randomCards t]
-        SetCardOwners list ->
-            {model | board = setCardOwners list model.board} ! []
-        SetCardWords list ->
-            {model | board = setCardWords list model.board} ! []
+        InitState state ->
+            setInitState state model ! []
         SetWordList wl ->
             {model | wordList = wl} ! []
         ToggleHints ->
             {model | hints = not model.hints} ! []
         Reset ->
             reset model
-        EnterTile v ->
-            {model | board = setMouseOver True v model.board} ! []
-        LeaveTile v ->
-            {model | board = setMouseOver False v model.board} ! []
-        NewMessage str ->
+        MouseOverTile b v ->
+            {model | board = setMouseOver b v model.board} ! []
+        ReceiveMessage mtr ->
             model ! []
 
-withMouseOver : Bool -> Card -> Card
-withMouseOver b card =
-    {card | mouseOver = b}
+click : Vector -> Model -> Model
+click v model =
+    lookupV v model.board
+    |> andThen (\card -> if model.isGameOver then Nothing else Just card)
+    |> andThen (\card -> if card.revealed then Nothing else Just card)
+    |> Maybe.map (\card -> case card.cardType of
+                                Blank -> passTurn model
+                                KillWord -> passTurn model
+                                Team t -> if t /= model.turn
+                                    then passTurn model
+                                    else model)
+    |> Maybe.map (reveal v)
+    |> Maybe.map (endGame)
+    |> withDefault model
 
 setMouseOver : Bool -> Vector -> Board -> Board
 setMouseOver b v board =
-    lookupV v board
-    |> Maybe.map (\card -> withMouseOver b card)
-    |> Maybe.map (\card -> setV v card board)
-    |> withDefault board
+    let
+        withMouseOver b card =
+            {card | mouseOver = b}
+    in
+        lookupV v board
+        |> Maybe.map (\card -> withMouseOver b card)
+        |> Maybe.map (\card -> setV v card board)
+        |> withDefault board
 
 cardTypeList : Team -> List CardType
 cardTypeList activeTeam =
@@ -86,39 +95,57 @@ getWordList wl =
         NormalWords -> WordLists.words
         OriginalWords -> WordLists.original
 
-randomTeam : Cmd Msg
-randomTeam =
-    Random.bool
-    |> Random.map (\b -> if b then Blue else Red)
-    |> Random.generate SetTeam
+randomInitialState : WordList -> Cmd Msg
+randomInitialState wl =
+    let
+        randomTeam : Generator Team
+        randomTeam =
+            Random.bool
+            |> Random.map (\b -> if b then Blue else Red)
 
-randomCards : Team -> Cmd Msg
-randomCards t =
-    Random.generate SetCardOwners <| shuffle <| cardTypeList t
+        randomCards : Team -> Generator (List CardType)
+        randomCards t =
+            shuffle <| cardTypeList t
 
-randomWords : WordList -> Cmd Msg
-randomWords wl =
-    Random.generate SetCardWords <| shuffle <| getWordList wl
+        randomWords : Generator (List String)
+        randomWords =
+            shuffle <| getWordList wl
 
-setCardOwners : List CardType -> Board -> Board
-setCardOwners list board =
+    in
+        randomTeam
+        |> Random.andThen (\team -> pair (constant team) (randomCards team))
+        |> Random.map2 (\ls (t, lct) -> (,,) t lct ls) randomWords
+        |> Random.generate InitState
+
+
+
+setTurn : Team -> Model -> Model
+setTurn team model =
+    {model | turn = team}
+
+setCardTypes : List CardType -> Model -> Model
+setCardTypes cardTypes model =
     let
         index v =
             (getX v) + (5 * getY v)
         setOwner v card =
-            {card | cardType = withDefault Blank <| flip get list <| index v}
+            {card | cardType = withDefault Blank <| flip get cardTypes <| index v}
     in
-        Grid.indexedMap setOwner board
+        {model | board = Grid.indexedMap setOwner model.board}
 
-setCardWords : List String -> Board -> Board
-setCardWords list board =
+setCardWords : List String -> Model -> Model
+setCardWords cardWords model =
     let
         index v =
             (getX v) + (5 * getY v)
         setWord v card =
-            {card | word = withDefault "ERROR" <| flip get list <| index v}
+            {card | word = withDefault "ERROR" <| flip get cardWords <| index v}
     in
-        Grid.indexedMap setWord board
+        {model | board = Grid.indexedMap setWord model.board}
+
+setInitState : (Team, List CardType, List String) -> Model -> Model
+setInitState (team, cardTypes, cardWords) model =
+    model |> setTurn team |> setCardTypes cardTypes |> setCardWords cardWords
 
 reveal : Vector -> Model -> Model
 reveal v model =
@@ -127,7 +154,6 @@ reveal v model =
             {card | revealed = True}
     in
         {model | board = Grid.mapAtV setRevealed v model.board}
-
 
 passTurn : Model -> Model
 passTurn model =
@@ -157,24 +183,8 @@ endGame model =
             then {model | isGameOver = True}
             else model
 
-click : Vector -> Model -> Model
-click v model =
-    lookupV v model.board
-    |> andThen (\card -> if model.isGameOver then Nothing else Just card)
-    |> andThen (\card -> if card.revealed then Nothing else Just card)
-    |> Maybe.map (\card -> case card.cardType of
-                                Blank -> passTurn model
-                                KillWord -> passTurn model
-                                Team t -> if t /= model.turn
-                                    then passTurn model
-                                    else model)
-    |> Maybe.map (reveal v)
-    |> Maybe.map (endGame)
-    |> withDefault model
-
-
 -- SUBSCRIPTIONS
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    WebSocket.listen "ws://echo.websocket.org" NewMessage
+    Sockets.subscriptions
