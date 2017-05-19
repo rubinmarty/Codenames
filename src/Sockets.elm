@@ -21,15 +21,18 @@ send : Transmission -> Cmd Msg
 send str =
     WebSocket.send address <| serialize str
 
+
+
 -- SERIALIZATION
 
 serialize : Transmission -> String
-serialize = JE.encode 0 << transmissionE
+serialize = Debug.log "serialize" << JE.encode 0 << transmissionE
 
 deserialize : String -> Maybe Transmission
 deserialize str =
     JD.decodeString transmissionD str
     |> Result.toMaybe
+    |> Debug.log "deserialize"
 
 -- ENCODING
 
@@ -55,7 +58,8 @@ transmissionE tr =
         , ("typeList", maybeE (JE.list << List.map cardTypeE) tr.typeList)
         , ("click", maybeE vectorE tr.click)
         , ("turn", maybeE teamE tr.turn)
-        , ("isGameOver", maybeE JE.bool tr.isGameOver)
+        , ("isGameOver", JE.bool tr.isGameOver)
+        , ("reset", JE.bool tr.reset)
         ]
 
 -- DECODING
@@ -69,12 +73,13 @@ nullOr decoder =
 
 transmissionD : Decoder Transmission
 transmissionD =
-    JD.map5 Transmission
+    JD.map6 Transmission
         (JD.field "wordList"   <| nullOr <| JD.list <| JD.string)
         (JD.field "typeList"   <| nullOr <| JD.list <| cardTypeD)
         (JD.field "click"      <| nullOr <| vectorD)
         (JD.field "turn"       <| nullOr <| teamD)
-        (JD.field "isGameOver" <| nullOr <| JD.bool)
+        (JD.field "isGameOver" <| JD.bool)
+        (JD.field "reset"       <| JD.bool)
 
 cardTypeD : Decoder CardType
 cardTypeD =
@@ -101,4 +106,4 @@ teamD =
         JD.andThen helper JD.string
     
 vectorD : Decoder Vector
-vectorD = JD.map2 (,) JD.int JD.int
+vectorD = JD.map2 (,) (JD.field "x" JD.int) (JD.field "y" JD.int)

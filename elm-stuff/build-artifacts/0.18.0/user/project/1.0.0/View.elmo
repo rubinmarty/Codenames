@@ -238,8 +238,12 @@ var _user$project$View$cardStyle = F2(
 																_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
 																_1: {
 																	ctor: '::',
-																	_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
-																	_1: {ctor: '[]'}
+																	_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'calibri, helvetica, arial, sans-serif'},
+																	_1: {
+																		ctor: '::',
+																		_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
+																		_1: {ctor: '[]'}
+																	}
 																}
 															}
 														}

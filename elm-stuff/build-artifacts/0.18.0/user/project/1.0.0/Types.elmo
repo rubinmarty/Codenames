@@ -1,3 +1,4 @@
+var _user$project$Types$blank = {wordList: _elm_lang$core$Maybe$Nothing, typeList: _elm_lang$core$Maybe$Nothing, click: _elm_lang$core$Maybe$Nothing, turn: _elm_lang$core$Maybe$Nothing, isGameOver: false, reset: false};
 var _user$project$Types$Model = F5(
 	function (a, b, c, d, e) {
 		return {board: a, turn: b, hints: c, isGameOver: d, wordList: e};
@@ -6,9 +7,9 @@ var _user$project$Types$Card = F4(
 	function (a, b, c, d) {
 		return {word: a, cardType: b, revealed: c, mouseOver: d};
 	});
-var _user$project$Types$Transmission = F5(
-	function (a, b, c, d, e) {
-		return {wordList: a, typeList: b, click: c, turn: d, isGameOver: e};
+var _user$project$Types$Transmission = F6(
+	function (a, b, c, d, e, f) {
+		return {wordList: a, typeList: b, click: c, turn: d, isGameOver: e, reset: f};
 	});
 var _user$project$Types$Red = {ctor: 'Red'};
 var _user$project$Types$Blue = {ctor: 'Blue'};

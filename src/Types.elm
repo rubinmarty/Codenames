@@ -61,5 +61,16 @@ type alias Transmission =
     , typeList : Maybe (List CardType)
     , click : Maybe Vector
     , turn : Maybe Team
-    , isGameOver : Maybe Bool
+    , isGameOver : Bool
+    , reset : Bool
+    }
+
+blank : Transmission
+blank =
+    { wordList   = Nothing
+    , typeList   = Nothing
+    , click      = Nothing
+    , turn       = Nothing
+    , isGameOver = False
+    , reset      = False
     }

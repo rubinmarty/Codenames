@@ -26,11 +26,11 @@ newModel =
 
 init : (Model, Cmd Msg)
 init =
-     reset newModel
+     newModel ! [reset newModel]
 
-reset : Model -> (Model, Cmd Msg)
+reset : Model -> Cmd Msg 
 reset model =
-    {newModel | wordList = model.wordList} ! [randomInitialState model.wordList]
+    randomInitialState model.wordList
 
 
 
@@ -41,19 +41,55 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         Click v ->
-            click v model ! []
-        InitState state ->
-            setInitState state model ! []
+            model ! [Sockets.send <| {blank | click = Just v}]
+        InitState (t, tl, wl) ->
+            let
+                trans =
+                    { blank |   turn = Just t
+                                , typeList = Just tl
+                                , wordList = Just wl
+                                , reset = True
+                                }
+            in
+                model ! [Sockets.send <| trans]
         SetWordList wl ->
             {model | wordList = wl} ! []
         ToggleHints ->
             {model | hints = not model.hints} ! []
         Reset ->
-            reset model
+            model ! [reset model]
         MouseOverTile b v ->
             {model | board = setMouseOver b v model.board} ! []
+
         ReceiveMessage mtr ->
-            model ! []
+            let
+                mtr_ =
+                    withDefault blank mtr
+
+                updateMaybe : (a -> Model -> Model) -> Maybe a -> Model -> Model
+                updateMaybe f a model =
+                    case a of
+                        Nothing -> model
+                        Just a_ -> f a_ model
+
+                updateIf : (Model -> Model) -> Bool -> Model -> Model
+                updateIf f b model =
+                    if b then f model else model
+
+                newModel = model
+                |> updateMaybe setCardTypes (.typeList mtr_)
+                |> updateMaybe setCardWords (.wordList mtr_)
+                |> updateMaybe click (.click mtr_)
+                |> updateMaybe (\a m -> {m | turn = a}) (.turn mtr_)
+                |> updateIf (setGameOver True) (.isGameOver mtr_)
+                |> updateIf (setUnrevealed << setGameOver False) (.reset mtr_)
+
+
+            in
+                newModel ! []
+
+
+
 
 click : Vector -> Model -> Model
 click v model =
@@ -143,9 +179,23 @@ setCardWords cardWords model =
     in
         {model | board = Grid.indexedMap setWord model.board}
 
+setUnrevealed : Model -> Model
+setUnrevealed model =
+    let
+        board
+            = model.board
+        newBoard =
+            Grid.map (\card -> {card | revealed = False}) board
+    in
+        {model | board = newBoard} 
+
 setInitState : (Team, List CardType, List String) -> Model -> Model
 setInitState (team, cardTypes, cardWords) model =
-    model |> setTurn team |> setCardTypes cardTypes |> setCardWords cardWords
+    model
+    |> setTurn team
+    |> setCardTypes cardTypes
+    |> setCardWords cardWords
+    |> setUnrevealed
 
 reveal : Vector -> Model -> Model
 reveal v model =
@@ -182,6 +232,10 @@ endGame model =
         if List.any noneRemaining [Team Blue, Team Red, KillWord]
             then {model | isGameOver = True}
             else model
+
+setGameOver : Bool -> Model -> Model
+setGameOver b model =
+    {model | isGameOver = b}
 
 -- SUBSCRIPTIONS
 
