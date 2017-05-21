@@ -30,10 +30,6 @@ init : Navigation.Location -> (Model, Cmd Msg)
 init location =
     { newModel | serverAddress = "wss://" ++ location.host } ! []
 
-reset : Model -> Cmd Msg
-reset model =
-    randomInitialState model.wordList
-
 
 
 -- UPDATE
@@ -41,58 +37,50 @@ reset model =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    let
-        sendToServer =
-            Sockets.send (model.serverAddress ++ "/submit")
+    let send msgs =
+        Sockets.send (model.serverAddress ++ "/submit") msgs
     in
     case msg of
-        Click v ->
-            model ! [sendToServer {blank | click = Just v}]
-        InitState (t, tl, wl) ->
+        Send msgs ->
+            model ! [send msgs]
+        Receive msgs ->
+            List.foldr (\x y -> update x <| Tuple.first y) (model ! []) msgs
+        Reset ->
+            model ! [randomInitialState model.wordList]
+        InitState (team, ctl, wl) ->
             let
-                trans =
-                    { blank |   turn = Just t
-                                , typeList = Just tl
-                                , wordList = Just <| List.take 25 wl
-                                , reset = True
-                                }
+                msgs =
+                    [ NewGame
+                    , SetTurn team
+                    , SetCardTypes ctl
+                    , SetCardWords wl
+                    , SetHints False
+                    ]
             in
-                model ! [sendToServer trans]
+                model ! [send msgs]
+
+        SetClicked v ->
+            click v model ! []
+        SetCardTypes ctl ->
+            setCardTypes ctl model ! []
+        SetCardWords wl ->
+            setCardWords wl model ! []
+        SetTurn team ->
+            setTurn team model ! []
+        PassTurn ->
+            setTurn (otherTeam model.turn) model ! []
+        NewGame ->
+            model
+            |> setUnrevealed
+            |> (\m -> {m | hints = False})
+            |> (\m -> {m | isGameOver = False} ! [])
+
         SetWordList wl ->
             {model | wordList = wl} ! []
-        ToggleHints ->
-            {model | hints = not model.hints} ! []
-        Reset ->
-            model ! [reset model]
-        PassTurn ->
-            passTurn model ! []
+        SetHints b ->
+            {model | hints = b} ! []
         MouseOverTile b v ->
             {model | board = setMouseOver b v model.board} ! []
-
-        ReceiveMessage tr ->
-            let
-                updateMaybe : (a -> Model -> Model) -> Maybe a -> Model -> Model
-                updateMaybe f a model =
-                    case a of
-                        Nothing -> model
-                        Just a_ -> f a_ model
-
-                updateIf : (Model -> Model) -> Bool -> Model -> Model
-                updateIf f b model =
-                    if b then f model else model
-
-                newModel = model
-                |> updateMaybe setCardTypes                      (.typeList tr)
-                |> updateMaybe setCardWords                      (.wordList tr)
-                |> updateMaybe click                             (.click tr)
-                |> updateMaybe setTurn                           (.turn tr)
-                |> updateIf (setGameOver True)                   (.isGameOver tr)
-                |> updateIf (setUnrevealed << setGameOver False) (.reset tr)
-
-
-            in
-                newModel ! []
-
         UrlChange location ->
           model ! []
 
@@ -124,23 +112,23 @@ setMouseOver b v board =
         |> Maybe.map (\card -> setV v card board)
         |> withDefault board
 
-cardTypeList : Team -> List CardType
-cardTypeList activeTeam =
-    List.repeat 9 (Team activeTeam)
-    ++ List.repeat 8 (Team <| otherTeam activeTeam)
-    ++ List.repeat 7 Blank
-    ++ List.singleton KillWord
-
-getWordList : WordList -> List String
-getWordList wl =
-    case wl of
-        EasyWords -> WordLists.easy_words
-        NormalWords -> WordLists.words
-        OriginalWords -> WordLists.original
-
 randomInitialState : WordList -> Cmd Msg
 randomInitialState wl =
     let
+        cardTypeList : Team -> List CardType
+        cardTypeList activeTeam =
+            List.repeat 9 (Team activeTeam)
+            ++ List.repeat 8 (Team <| otherTeam activeTeam)
+            ++ List.repeat 7 Blank
+            ++ List.singleton KillWord
+
+        getWordList : WordList -> List String
+        getWordList wl =
+            case wl of
+                EasyWords -> WordLists.easy_words
+                NormalWords -> WordLists.words
+                OriginalWords -> WordLists.original
+
         randomTeam : Generator Team
         randomTeam =
             Random.bool
@@ -152,7 +140,7 @@ randomInitialState wl =
 
         randomWords : Generator (List String)
         randomWords =
-            shuffle <| getWordList wl
+             Random.map (List.take 25) <| shuffle <| getWordList wl
 
     in
         randomTeam
@@ -195,14 +183,6 @@ setUnrevealed model =
             Grid.map (\card -> {card | revealed = False}) board
     in
         {model | board = newBoard}
-
-setInitState : (Team, List CardType, List String) -> Model -> Model
-setInitState (team, cardTypes, cardWords) model =
-    model
-    |> setTurn team
-    |> setCardTypes cardTypes
-    |> setCardWords cardWords
-    |> setUnrevealed
 
 reveal : Vector -> Model -> Model
 reveal v model =

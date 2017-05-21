@@ -78,7 +78,7 @@ cardNode v card hasHints isGameOver =
                 else text ""
     in
         span
-            [ onClick <| Click v
+            [ onClick <| Send [SetClicked v]
             , onMouseEnter <| MouseOverTile True v
             , onMouseLeave <| MouseOverTile False v
             , cardStyle card isGameOver
@@ -106,7 +106,7 @@ resetButton : Html Msg
 resetButton = button [onClick Reset] [text "Reset"]
 
 passButton : Html Msg
-passButton = button [onClick PassTurn] [text "Pass Turn"]
+passButton = button [onClick <| Send [PassTurn]] [text "Pass Turn"]
 
 hintsButton : Bool -> Html Msg
 hintsButton isHintsOn =
@@ -115,8 +115,10 @@ hintsButton isHintsOn =
             style [("width","110px")]
         myText =
             if isHintsOn then "Hide Solutions" else "View Solutions"
+        myClick =
+            onClick <| SetHints <| not isHintsOn
     in
-        button [onClick ToggleHints, myStyle] [text myText]
+        button [myClick, myStyle] [text myText]
 
 remainingBox : Model -> Team -> Html Msg
 remainingBox model team =
@@ -147,9 +149,13 @@ wordListButton wl =
                 EasyWords -> ("Easy Words", "499 short words")
                 NormalWords -> ("Normal Words", "499 medium words")
                 OriginalWords -> ("Original Words", "400 original words")
+        myClick =
+            onClick <| SetWordList wl
+        isChecked =
+            wl == NormalWords
 
         button_ =
-            Html.input [type_ "radio", title title_, name "wordList", onClick <| SetWordList wl, checked <| wl == NormalWords] []
+            Html.input [type_ "radio", title title_, name "wordList", myClick, checked isChecked] []
 
     in
         div [] [button_, text text_]

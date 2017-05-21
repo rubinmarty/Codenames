@@ -5,60 +5,92 @@ import Vector exposing (Vector, getX, getY)
 
 import WebSocket
 import Result
+import Platform.Sub as Sub
 import Json.Encode as JE
 import Json.Decode as JD exposing (Decoder)
 
 
 subscriptions : String -> Sub Msg
 subscriptions address =
-    WebSocket.listen address (\s -> ReceiveMessage <| Maybe.withDefault blank <| deserialize s)
+    WebSocket.listen address (Receive << deserialize)
 
-send : String -> Transmission -> Cmd Msg
-send address state =
-    WebSocket.send address <| serialize state
+send : String -> List Msg -> Cmd Msg
+send address msgs =
+    WebSocket.send address <| serialize msgs
 
 
 
 -- SERIALIZATION
 
-serialize : Transmission -> String
-serialize = Debug.log "serialize" << JE.encode 0 << transmissionE
+debug = False
 
-deserialize : String -> Maybe Transmission
-deserialize str =
-    JD.decodeString transmissionD str
-    |> Result.toMaybe
-    |> Debug.log "deserialize"
+print : String -> a -> a
+print str =
+    if debug then Debug.log str else identity
+
+serialize : List Msg -> String
+serialize =
+    print "sending" << JE.encode 0 << msgsE << print "about to encode"
+
+deserialize : String -> List Msg
+deserialize =
+    print "decoded" << Result.withDefault [] << JD.decodeString msgsD << print "received"
 
 -- ENCODING
 
+msgE : Msg -> Maybe JE.Value
+msgE msg =
+    case msg of
+        SetClicked v ->
+            Just <| JE.object [("SetClicked", vectorE v)]
+        SetTurn t ->
+            Just <| JE.object [("SetTurn", enumE t)]
+        SetCardWords ls ->
+            Just <| JE.object [("SetCardWords", JE.list <| List.map JE.string ls)]
+        SetCardTypes lct ->
+            Just <| JE.object [("SetCardTypes", JE.list <| List.map enumE lct)]
+        PassTurn ->
+            Just <| JE.object [("PassTurn", JE.null)]
+        NewGame ->
+            Just <| JE.object [("NewGame", JE.null)]
+        _ ->
+            Nothing
+
+msgsE : List Msg -> JE.Value
+msgsE msgs =
+    JE.list <| List.filterMap msgE msgs
+
+enumE : a -> JE.Value
+enumE = JE.string << toString
+ 
 vectorE : Vector -> JE.Value
 vectorE v =
     JE.object [("x", JE.int <| getX v), ("y", JE.int <| getY v)]
 
+{-
 maybeE : (a -> JE.Value) -> Maybe a -> JE.Value
 maybeE f m =
     Maybe.withDefault JE.null <| Maybe.map f <| m
-
-cardTypeE : CardType -> JE.Value
-cardTypeE ct =
-    JE.string <| toString ct
-
-teamE : Team -> JE.Value
-teamE = JE.string << toString
-
-transmissionE : Transmission -> JE.Value
-transmissionE tr =
-    JE.object
-        [ ("wordList", maybeE (JE.list << List.map JE.string) tr.wordList)
-        , ("typeList", maybeE (JE.list << List.map cardTypeE) tr.typeList)
-        , ("click", maybeE vectorE tr.click)
-        , ("turn", maybeE teamE tr.turn)
-        , ("isGameOver", JE.bool tr.isGameOver)
-        , ("reset", JE.bool tr.reset)
-        ]
+-}
 
 -- DECODING
+
+
+msgD : Decoder Msg
+msgD =
+    JD.oneOf
+    [ JD.field "SetClicked" (JD.map SetClicked vectorD)
+    , JD.field "SetTurn" (JD.map SetTurn teamD) 
+    , JD.field "SetCardWords" (JD.map SetCardWords (JD.list JD.string))
+    , JD.field "SetCardTypes" (JD.map SetCardTypes (JD.list cardTypeD))
+    , JD.field "PassTurn" (JD.succeed PassTurn)
+    , JD.field "NewGame" (JD.succeed NewGame)
+    ]
+
+msgsD : Decoder (List Msg)
+msgsD =
+    JD.list msgD
+    
 
 nullOr : Decoder a -> Decoder (Maybe a)
 nullOr decoder =
@@ -66,16 +98,6 @@ nullOr decoder =
     [ JD.null Nothing
     , JD.map Just decoder
     ]
-
-transmissionD : Decoder Transmission
-transmissionD =
-    JD.map6 Transmission
-        (JD.field "wordList"   <| nullOr <| JD.list <| JD.string)
-        (JD.field "typeList"   <| nullOr <| JD.list <| cardTypeD)
-        (JD.field "click"      <| nullOr <| vectorD)
-        (JD.field "turn"       <| nullOr <| teamD)
-        (JD.field "isGameOver" <| JD.bool)
-        (JD.field "reset"      <| JD.bool)
 
 cardTypeD : Decoder CardType
 cardTypeD =
@@ -103,3 +125,4 @@ teamD =
 
 vectorD : Decoder Vector
 vectorD = JD.map2 (,) (JD.field "x" JD.int) (JD.field "y" JD.int)
+

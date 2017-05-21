@@ -49,32 +49,25 @@ type WordList = EasyWords | NormalWords | OriginalWords
 
 
 type Msg =
-      Click Vector
-    | InitState (Team, List CardType, List String)
-    | SetWordList WordList
-    | ToggleHints
+
+    --triggered messages
+      Send (List Msg)
+    | Receive (List Msg)
     | Reset
+    | InitState (Team, List CardType, List String)
+
+    --sendable messages (should really be their own type)
+    | SetClicked Vector
+    | SetTurn Team
+    | SetCardWords (List String)
+    | SetCardTypes (List CardType)
     | PassTurn
+    | NewGame
+
+    --local messages
+    | SetWordList WordList
+    | SetHints Bool
     | MouseOverTile Bool Vector
-    | ReceiveMessage Transmission
+
+    --unused messages
     | UrlChange Navigation.Location
-
-
-type alias Transmission =
-    { wordList : Maybe (List String)
-    , typeList : Maybe (List CardType)
-    , click : Maybe Vector
-    , turn : Maybe Team
-    , isGameOver : Bool
-    , reset : Bool
-    }
-
-blank : Transmission
-blank =
-    { wordList   = Nothing
-    , typeList   = Nothing
-    , click      = Nothing
-    , turn       = Nothing
-    , isGameOver = False
-    , reset      = False
-    }
