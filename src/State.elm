@@ -47,7 +47,7 @@ update msg model =
                 trans =
                     { blank |   turn = Just t
                                 , typeList = Just tl
-                                , wordList = Just wl
+                                , wordList = Just <| List.take 25 wl
                                 , reset = True
                                 }
             in
@@ -77,7 +77,7 @@ update msg model =
                 |> updateMaybe setCardTypes                      (.typeList tr)
                 |> updateMaybe setCardWords                      (.wordList tr)
                 |> updateMaybe click                             (.click tr)
-                |> updateMaybe (\a m -> {m | turn = a})          (.turn tr)
+                |> updateMaybe setTurn                           (.turn tr)
                 |> updateIf (setGameOver True)                   (.isGameOver tr)
                 |> updateIf (setUnrevealed << setGameOver False) (.reset tr)
 

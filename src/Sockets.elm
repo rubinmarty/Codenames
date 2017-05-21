@@ -79,7 +79,7 @@ transmissionD =
         (JD.field "click"      <| nullOr <| vectorD)
         (JD.field "turn"       <| nullOr <| teamD)
         (JD.field "isGameOver" <| JD.bool)
-        (JD.field "reset"       <| JD.bool)
+        (JD.field "reset"      <| JD.bool)
 
 cardTypeD : Decoder CardType
 cardTypeD =

@@ -317,7 +317,8 @@ var _user$project$State$update = F2(
 					{
 						turn: _elm_lang$core$Maybe$Just(_p7._0._0),
 						typeList: _elm_lang$core$Maybe$Just(_p7._0._1),
-						wordList: _elm_lang$core$Maybe$Just(_p7._0._2),
+						wordList: _elm_lang$core$Maybe$Just(
+							A2(_elm_lang$core$List$take, 25, _p7._0._2)),
 						reset: true
 					});
 				return A2(
@@ -392,12 +393,7 @@ var _user$project$State$update = F2(
 						}(_p10),
 						A3(
 							updateMaybe,
-							F2(
-								function (a, m) {
-									return _elm_lang$core$Native_Utils.update(
-										m,
-										{turn: a});
-								}),
+							_user$project$State$setTurn,
 							function (_) {
 								return _.turn;
 							}(_p10),

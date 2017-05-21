@@ -145,7 +145,8 @@ wordListButton wl =
                 NormalWords -> ("Normal Words", "499 medium words")
                 OriginalWords -> ("Original Words", "400 original words")
 
-        button_ = Html.input [type_ "radio", title title_, name "wordList", onClick <| SetWordList wl, checked <| wl == NormalWords] []
+        button_ =
+            Html.input [type_ "radio", title title_, name "wordList", onClick <| SetWordList wl, checked <| wl == NormalWords] []
 
     in
         div [] [button_, text text_]
