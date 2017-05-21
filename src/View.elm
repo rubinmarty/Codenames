@@ -105,6 +105,9 @@ sash cardType =
 resetButton : Html Msg
 resetButton = button [onClick Reset] [text "Reset"]
 
+passButton : Html Msg
+passButton = button [onClick PassTurn] [text "Pass Turn"]
+
 hintsButton : Bool -> Html Msg
 hintsButton isHintsOn =
     let
@@ -155,7 +158,7 @@ view : Model -> Html Msg
 view model =
     let
         menuButtons =
-            div [] [resetButton, hintsButton model.hints]
+            div [] [resetButton, passButton, hintsButton model.hints]
         wordListButtons =
             div [] [wordListButton EasyWords, wordListButton NormalWords, wordListButton OriginalWords]
         buttonArea =

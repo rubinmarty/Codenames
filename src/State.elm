@@ -58,6 +58,8 @@ update msg model =
             {model | hints = not model.hints} ! []
         Reset ->
             model ! [reset model]
+        PassTurn ->
+            passTurn model ! []
         MouseOverTile b v ->
             {model | board = setMouseOver b v model.board} ! []
 

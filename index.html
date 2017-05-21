@@ -9727,6 +9727,7 @@ var _user$project$Grid$grid = F3(
 			y,
 			A2(_elm_lang$core$List$repeat, x, v));
 	});
+var _user$project$Types$blank = {wordList: _elm_lang$core$Maybe$Nothing, typeList: _elm_lang$core$Maybe$Nothing, click: _elm_lang$core$Maybe$Nothing, turn: _elm_lang$core$Maybe$Nothing, isGameOver: false, reset: false};
 var _user$project$Types$Model = F5(
 	function (a, b, c, d, e) {
 		return {board: a, turn: b, hints: c, isGameOver: d, wordList: e};
@@ -9734,6 +9735,10 @@ var _user$project$Types$Model = F5(
 var _user$project$Types$Card = F4(
 	function (a, b, c, d) {
 		return {word: a, cardType: b, revealed: c, mouseOver: d};
+	});
+var _user$project$Types$Transmission = F6(
+	function (a, b, c, d, e, f) {
+		return {wordList: a, typeList: b, click: c, turn: d, isGameOver: e, reset: f};
 	});
 var _user$project$Types$Red = {ctor: 'Red'};
 var _user$project$Types$Blue = {ctor: 'Blue'};
@@ -9750,45 +9755,239 @@ var _user$project$Types$Team = function (a) {
 };
 var _user$project$Types$KillWord = {ctor: 'KillWord'};
 var _user$project$Types$Blank = {ctor: 'Blank'};
-var _user$project$Types$dummyCard = {word: 'test', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
+var _user$project$Types$dummyCard = {word: '', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
 var _user$project$Types$OriginalWords = {ctor: 'OriginalWords'};
 var _user$project$Types$NormalWords = {ctor: 'NormalWords'};
 var _user$project$Types$EasyWords = {ctor: 'EasyWords'};
-var _user$project$Types$NewMessage = function (a) {
-	return {ctor: 'NewMessage', _0: a};
+var _user$project$Types$ReceiveMessage = function (a) {
+	return {ctor: 'ReceiveMessage', _0: a};
 };
-var _user$project$Types$SendMessage = function (a) {
-	return {ctor: 'SendMessage', _0: a};
-};
-var _user$project$Types$LeaveTile = function (a) {
-	return {ctor: 'LeaveTile', _0: a};
-};
-var _user$project$Types$EnterTile = function (a) {
-	return {ctor: 'EnterTile', _0: a};
-};
+var _user$project$Types$MouseOverTile = F2(
+	function (a, b) {
+		return {ctor: 'MouseOverTile', _0: a, _1: b};
+	});
+var _user$project$Types$PassTurn = {ctor: 'PassTurn'};
 var _user$project$Types$Reset = {ctor: 'Reset'};
 var _user$project$Types$ToggleHints = {ctor: 'ToggleHints'};
 var _user$project$Types$SetWordList = function (a) {
 	return {ctor: 'SetWordList', _0: a};
 };
-var _user$project$Types$SetCardWords = function (a) {
-	return {ctor: 'SetCardWords', _0: a};
-};
-var _user$project$Types$SetCardOwners = function (a) {
-	return {ctor: 'SetCardOwners', _0: a};
-};
-var _user$project$Types$SetTeam = function (a) {
-	return {ctor: 'SetTeam', _0: a};
+var _user$project$Types$InitState = function (a) {
+	return {ctor: 'InitState', _0: a};
 };
 var _user$project$Types$Click = function (a) {
 	return {ctor: 'Click', _0: a};
 };
-var _user$project$Sockets$address = 'ws://echo.websocket.org';
-var _user$project$Sockets$subscriptions = function (model) {
-	return A2(_elm_lang$websocket$WebSocket$listen, _user$project$Sockets$address, _user$project$Types$NewMessage);
+var _user$project$Sockets$vectorD = A3(
+	_elm_lang$core$Json_Decode$map2,
+	F2(
+		function (v0, v1) {
+			return {ctor: '_Tuple2', _0: v0, _1: v1};
+		}),
+	A2(_elm_lang$core$Json_Decode$field, 'x', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode$field, 'y', _elm_lang$core$Json_Decode$int));
+var _user$project$Sockets$teamD = function () {
+	var helper = function (str) {
+		var _p0 = str;
+		switch (_p0) {
+			case 'Red':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$Red);
+			case 'Blue':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$Blue);
+			default:
+				return _elm_lang$core$Json_Decode$fail('Invalid Team');
+		}
+	};
+	return A2(_elm_lang$core$Json_Decode$andThen, helper, _elm_lang$core$Json_Decode$string);
+}();
+var _user$project$Sockets$cardTypeD = function () {
+	var helper = function (str) {
+		var _p1 = str;
+		switch (_p1) {
+			case 'KillWord':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$KillWord);
+			case 'Blank':
+				return _elm_lang$core$Json_Decode$succeed(_user$project$Types$Blank);
+			case 'Team Red':
+				return _elm_lang$core$Json_Decode$succeed(
+					_user$project$Types$Team(_user$project$Types$Red));
+			case 'Team Blue':
+				return _elm_lang$core$Json_Decode$succeed(
+					_user$project$Types$Team(_user$project$Types$Blue));
+			default:
+				return _elm_lang$core$Json_Decode$fail('Invalid CardType');
+		}
+	};
+	return A2(_elm_lang$core$Json_Decode$andThen, helper, _elm_lang$core$Json_Decode$string);
+}();
+var _user$project$Sockets$nullOr = function (decoder) {
+	return _elm_lang$core$Json_Decode$oneOf(
+		{
+			ctor: '::',
+			_0: _elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
+			_1: {
+				ctor: '::',
+				_0: A2(_elm_lang$core$Json_Decode$map, _elm_lang$core$Maybe$Just, decoder),
+				_1: {ctor: '[]'}
+			}
+		});
 };
+var _user$project$Sockets$transmissionD = A7(
+	_elm_lang$core$Json_Decode$map6,
+	_user$project$Types$Transmission,
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'wordList',
+		_user$project$Sockets$nullOr(
+			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string))),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'typeList',
+		_user$project$Sockets$nullOr(
+			_elm_lang$core$Json_Decode$list(_user$project$Sockets$cardTypeD))),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'click',
+		_user$project$Sockets$nullOr(_user$project$Sockets$vectorD)),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'turn',
+		_user$project$Sockets$nullOr(_user$project$Sockets$teamD)),
+	A2(_elm_lang$core$Json_Decode$field, 'isGameOver', _elm_lang$core$Json_Decode$bool),
+	A2(_elm_lang$core$Json_Decode$field, 'reset', _elm_lang$core$Json_Decode$bool));
+var _user$project$Sockets$teamE = function (_p2) {
+	return _elm_lang$core$Json_Encode$string(
+		_elm_lang$core$Basics$toString(_p2));
+};
+var _user$project$Sockets$cardTypeE = function (ct) {
+	return _elm_lang$core$Json_Encode$string(
+		_elm_lang$core$Basics$toString(ct));
+};
+var _user$project$Sockets$maybeE = F2(
+	function (f, m) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			_elm_lang$core$Json_Encode$null,
+			A2(_elm_lang$core$Maybe$map, f, m));
+	});
+var _user$project$Sockets$vectorE = function (v) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'x',
+				_1: _elm_lang$core$Json_Encode$int(
+					_user$project$Vector$getX(v))
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'y',
+					_1: _elm_lang$core$Json_Encode$int(
+						_user$project$Vector$getY(v))
+				},
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Sockets$transmissionE = function (tr) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'wordList',
+				_1: A2(
+					_user$project$Sockets$maybeE,
+					function (_p3) {
+						return _elm_lang$core$Json_Encode$list(
+							A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, _p3));
+					},
+					tr.wordList)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'typeList',
+					_1: A2(
+						_user$project$Sockets$maybeE,
+						function (_p4) {
+							return _elm_lang$core$Json_Encode$list(
+								A2(_elm_lang$core$List$map, _user$project$Sockets$cardTypeE, _p4));
+						},
+						tr.typeList)
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'click',
+						_1: A2(_user$project$Sockets$maybeE, _user$project$Sockets$vectorE, tr.click)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'turn',
+							_1: A2(_user$project$Sockets$maybeE, _user$project$Sockets$teamE, tr.turn)
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'isGameOver',
+								_1: _elm_lang$core$Json_Encode$bool(tr.isGameOver)
+							},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'reset',
+									_1: _elm_lang$core$Json_Encode$bool(tr.reset)
+								},
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			}
+		});
+};
+var _user$project$Sockets$deserialize = function (str) {
+	return A2(
+		_elm_lang$core$Debug$log,
+		'deserialize',
+		_elm_lang$core$Result$toMaybe(
+			A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Sockets$transmissionD, str)));
+};
+var _user$project$Sockets$serialize = function (_p5) {
+	return A2(
+		_elm_lang$core$Debug$log,
+		'serialize',
+		A2(
+			_elm_lang$core$Json_Encode$encode,
+			0,
+			_user$project$Sockets$transmissionE(_p5)));
+};
+var _user$project$Sockets$address = 'ws://echo.websocket.org';
+var _user$project$Sockets$subscriptions = A2(
+	_elm_lang$websocket$WebSocket$listen,
+	_user$project$Sockets$address,
+	function (s) {
+		return _user$project$Types$ReceiveMessage(
+			A2(
+				_elm_lang$core$Maybe$withDefault,
+				_user$project$Types$blank,
+				_user$project$Sockets$deserialize(s)));
+	});
 var _user$project$Sockets$send = function (str) {
-	return A2(_elm_lang$websocket$WebSocket$send, _user$project$Sockets$address, str);
+	return A2(
+		_elm_lang$websocket$WebSocket$send,
+		_user$project$Sockets$address,
+		_user$project$Sockets$serialize(str));
 };
 var _user$project$RandomList$get = F2(
 	function (index, list) {
@@ -15476,7 +15675,15 @@ var _user$project$WordLists$easy_words = A2(
 				}
 			}
 		}));
-var _user$project$State$subscriptions = _user$project$Sockets$subscriptions;
+var _user$project$State$subscriptions = function (model) {
+	return _user$project$Sockets$subscriptions;
+};
+var _user$project$State$setGameOver = F2(
+	function (b, model) {
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{isGameOver: b});
+	});
 var _user$project$State$cardsRemaining = F2(
 	function (board, cardType) {
 		var doesCount = function (card) {
@@ -15546,44 +15753,22 @@ var _user$project$State$reveal = F2(
 				board: A3(_user$project$Grid$mapAtV, setRevealed, v, model.board)
 			});
 	});
-var _user$project$State$click = F2(
-	function (v, model) {
-		return A2(
-			_elm_lang$core$Maybe$withDefault,
-			model,
-			A2(
-				_elm_lang$core$Maybe$map,
-				_user$project$State$endGame,
-				A2(
-					_elm_lang$core$Maybe$map,
-					_user$project$State$reveal(v),
-					A2(
-						_elm_lang$core$Maybe$map,
-						function (card) {
-							var _p1 = card.cardType;
-							switch (_p1.ctor) {
-								case 'Blank':
-									return _user$project$State$passTurn(model);
-								case 'KillWord':
-									return _user$project$State$passTurn(model);
-								default:
-									return (!_elm_lang$core$Native_Utils.eq(_p1._0, model.turn)) ? _user$project$State$passTurn(model) : model;
-							}
-						},
-						A2(
-							_elm_lang$core$Maybe$andThen,
-							function (card) {
-								return card.revealed ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
-							},
-							A2(
-								_elm_lang$core$Maybe$andThen,
-								function (card) {
-									return model.isGameOver ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
-								},
-								A2(_user$project$Grid$lookupV, v, model.board)))))));
-	});
+var _user$project$State$setUnrevealed = function (model) {
+	var board = model.board;
+	var newBoard = A2(
+		_user$project$Grid$map,
+		function (card) {
+			return _elm_lang$core$Native_Utils.update(
+				card,
+				{revealed: false});
+		},
+		board);
+	return _elm_lang$core$Native_Utils.update(
+		model,
+		{board: newBoard});
+};
 var _user$project$State$setCardWords = F2(
-	function (list, board) {
+	function (cardWords, model) {
 		var index = function (v) {
 			return _user$project$Vector$getX(v) + (5 * _user$project$Vector$getY(v));
 		};
@@ -15598,14 +15783,18 @@ var _user$project$State$setCardWords = F2(
 							A3(
 								_elm_lang$core$Basics$flip,
 								_user$project$RandomList$get,
-								list,
+								cardWords,
 								index(v)))
 					});
 			});
-		return A2(_user$project$Grid$indexedMap, setWord, board);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				board: A2(_user$project$Grid$indexedMap, setWord, model.board)
+			});
 	});
-var _user$project$State$setCardOwners = F2(
-	function (list, board) {
+var _user$project$State$setCardTypes = F2(
+	function (cardTypes, model) {
 		var index = function (v) {
 			return _user$project$Vector$getX(v) + (5 * _user$project$Vector$getY(v));
 		};
@@ -15620,24 +15809,37 @@ var _user$project$State$setCardOwners = F2(
 							A3(
 								_elm_lang$core$Basics$flip,
 								_user$project$RandomList$get,
-								list,
+								cardTypes,
 								index(v)))
 					});
 			});
-		return A2(_user$project$Grid$indexedMap, setOwner, board);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				board: A2(_user$project$Grid$indexedMap, setOwner, model.board)
+			});
 	});
-var _user$project$State$randomTeam = A2(
-	_elm_lang$core$Random$generate,
-	_user$project$Types$SetTeam,
-	A2(
-		_elm_lang$core$Random$map,
-		function (b) {
-			return b ? _user$project$Types$Blue : _user$project$Types$Red;
-		},
-		_elm_lang$core$Random$bool));
+var _user$project$State$setTurn = F2(
+	function (team, model) {
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{turn: team});
+	});
+var _user$project$State$setInitState = F2(
+	function (_p1, model) {
+		var _p2 = _p1;
+		return _user$project$State$setUnrevealed(
+			A2(
+				_user$project$State$setCardWords,
+				_p2._2,
+				A2(
+					_user$project$State$setCardTypes,
+					_p2._1,
+					A2(_user$project$State$setTurn, _p2._0, model))));
+	});
 var _user$project$State$getWordList = function (wl) {
-	var _p2 = wl;
-	switch (_p2.ctor) {
+	var _p3 = wl;
+	switch (_p3.ctor) {
 		case 'EasyWords':
 			return _user$project$WordLists$easy_words;
 		case 'NormalWords':
@@ -15645,13 +15847,6 @@ var _user$project$State$getWordList = function (wl) {
 		default:
 			return _user$project$WordLists$original;
 	}
-};
-var _user$project$State$randomWords = function (wl) {
-	return A2(
-		_elm_lang$core$Random$generate,
-		_user$project$Types$SetCardWords,
-		_user$project$RandomList$shuffle(
-			_user$project$State$getWordList(wl)));
 };
 var _user$project$State$cardTypeList = function (activeTeam) {
 	return A2(
@@ -15672,21 +15867,55 @@ var _user$project$State$cardTypeList = function (activeTeam) {
 				A2(_elm_lang$core$List$repeat, 7, _user$project$Types$Blank),
 				_elm_lang$core$List$singleton(_user$project$Types$KillWord))));
 };
-var _user$project$State$randomCards = function (t) {
+var _user$project$State$randomInitialState = function (wl) {
+	var randomWords = _user$project$RandomList$shuffle(
+		_user$project$State$getWordList(wl));
+	var randomCards = function (t) {
+		return _user$project$RandomList$shuffle(
+			_user$project$State$cardTypeList(t));
+	};
+	var randomTeam = A2(
+		_elm_lang$core$Random$map,
+		function (b) {
+			return b ? _user$project$Types$Blue : _user$project$Types$Red;
+		},
+		_elm_lang$core$Random$bool);
 	return A2(
 		_elm_lang$core$Random$generate,
-		_user$project$Types$SetCardOwners,
-		_user$project$RandomList$shuffle(
-			_user$project$State$cardTypeList(t)));
+		_user$project$Types$InitState,
+		A3(
+			_elm_lang$core$Random$map2,
+			F2(
+				function (ls, _p4) {
+					var _p5 = _p4;
+					return A3(
+						F3(
+							function (v0, v1, v2) {
+								return {ctor: '_Tuple3', _0: v0, _1: v1, _2: v2};
+							}),
+						_p5._0,
+						_p5._1,
+						ls);
+				}),
+			randomWords,
+			A2(
+				_elm_lang$core$Random$andThen,
+				function (team) {
+					return A2(
+						_elm_lang$core$Random$pair,
+						_user$project$RandomList$constant(team),
+						randomCards(team));
+				},
+				randomTeam)));
 };
-var _user$project$State$withMouseOver = F2(
-	function (b, card) {
-		return _elm_lang$core$Native_Utils.update(
-			card,
-			{mouseOver: b});
-	});
 var _user$project$State$setMouseOver = F3(
 	function (b, v, board) {
+		var withMouseOver = F2(
+			function (b, card) {
+				return _elm_lang$core$Native_Utils.update(
+					card,
+					{mouseOver: b});
+			});
 		return A2(
 			_elm_lang$core$Maybe$withDefault,
 			board,
@@ -15698,74 +15927,91 @@ var _user$project$State$setMouseOver = F3(
 				A2(
 					_elm_lang$core$Maybe$map,
 					function (card) {
-						return A2(_user$project$State$withMouseOver, b, card);
+						return A2(withMouseOver, b, card);
 					},
 					A2(_user$project$Grid$lookupV, v, board))));
 	});
-var _user$project$State$blankBoard = A3(_user$project$Grid$grid, 5, 5, _user$project$Types$dummyCard);
-var _user$project$State$newModel = {board: _user$project$State$blankBoard, turn: _user$project$Types$Blue, hints: false, isGameOver: false, wordList: _user$project$Types$NormalWords};
+var _user$project$State$click = F2(
+	function (v, model) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			model,
+			A2(
+				_elm_lang$core$Maybe$map,
+				_user$project$State$endGame,
+				A2(
+					_elm_lang$core$Maybe$map,
+					_user$project$State$reveal(v),
+					A2(
+						_elm_lang$core$Maybe$map,
+						function (card) {
+							var _p6 = card.cardType;
+							switch (_p6.ctor) {
+								case 'Blank':
+									return _user$project$State$passTurn(model);
+								case 'KillWord':
+									return _user$project$State$passTurn(model);
+								default:
+									return (!_elm_lang$core$Native_Utils.eq(_p6._0, model.turn)) ? _user$project$State$passTurn(model) : model;
+							}
+						},
+						A2(
+							_elm_lang$core$Maybe$andThen,
+							function (card) {
+								return card.revealed ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
+							},
+							A2(
+								_elm_lang$core$Maybe$andThen,
+								function (card) {
+									return model.isGameOver ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
+								},
+								A2(_user$project$Grid$lookupV, v, model.board)))))));
+	});
 var _user$project$State$reset = function (model) {
-	return A2(
-		_elm_lang$core$Platform_Cmd_ops['!'],
-		_elm_lang$core$Native_Utils.update(
-			_user$project$State$newModel,
-			{wordList: model.wordList}),
-		{
-			ctor: '::',
-			_0: _user$project$State$randomTeam,
-			_1: {
-				ctor: '::',
-				_0: _user$project$State$randomWords(model.wordList),
-				_1: {ctor: '[]'}
-			}
-		});
+	return _user$project$State$randomInitialState(model.wordList);
 };
-var _user$project$State$init = _user$project$State$reset(_user$project$State$newModel);
 var _user$project$State$update = F2(
 	function (msg, model) {
-		var _p3 = msg;
-		switch (_p3.ctor) {
+		var _p7 = msg;
+		switch (_p7.ctor) {
 			case 'Click':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					A2(_user$project$State$click, _p3._0, model),
-					{ctor: '[]'});
-			case 'SetTeam':
-				var _p4 = _p3._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{turn: _p4}),
+					model,
 					{
 						ctor: '::',
-						_0: _user$project$State$randomCards(_p4),
+						_0: _user$project$Sockets$send(
+							_elm_lang$core$Native_Utils.update(
+								_user$project$Types$blank,
+								{
+									click: _elm_lang$core$Maybe$Just(_p7._0)
+								})),
 						_1: {ctor: '[]'}
 					});
-			case 'SetCardOwners':
+			case 'InitState':
+				var trans = _elm_lang$core$Native_Utils.update(
+					_user$project$Types$blank,
+					{
+						turn: _elm_lang$core$Maybe$Just(_p7._0._0),
+						typeList: _elm_lang$core$Maybe$Just(_p7._0._1),
+						wordList: _elm_lang$core$Maybe$Just(
+							A2(_elm_lang$core$List$take, 25, _p7._0._2)),
+						reset: true
+					});
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							board: A2(_user$project$State$setCardOwners, _p3._0, model.board)
-						}),
-					{ctor: '[]'});
-			case 'SetCardWords':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							board: A2(_user$project$State$setCardWords, _p3._0, model.board)
-						}),
-					{ctor: '[]'});
+					model,
+					{
+						ctor: '::',
+						_0: _user$project$Sockets$send(trans),
+						_1: {ctor: '[]'}
+					});
 			case 'SetWordList':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{wordList: _p3._0}),
+						{wordList: _p7._0}),
 					{ctor: '[]'});
 			case 'ToggleHints':
 				return A2(
@@ -15775,41 +16021,95 @@ var _user$project$State$update = F2(
 						{hints: !model.hints}),
 					{ctor: '[]'});
 			case 'Reset':
-				return _user$project$State$reset(model);
-			case 'EnterTile':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							board: A3(_user$project$State$setMouseOver, true, _p3._0, model.board)
-						}),
-					{ctor: '[]'});
-			case 'LeaveTile':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							board: A3(_user$project$State$setMouseOver, false, _p3._0, model.board)
-						}),
-					{ctor: '[]'});
-			case 'SendMessage':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					{
 						ctor: '::',
-						_0: _user$project$Sockets$send(_p3._0),
+						_0: _user$project$State$reset(model),
 						_1: {ctor: '[]'}
 					});
-			default:
+			case 'PassTurn':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
+					_user$project$State$passTurn(model),
+					{ctor: '[]'});
+			case 'MouseOverTile':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							board: A3(_user$project$State$setMouseOver, _p7._0, _p7._1, model.board)
+						}),
+					{ctor: '[]'});
+			default:
+				var _p10 = _p7._0;
+				var updateIf = F3(
+					function (f, b, model) {
+						return b ? f(model) : model;
+					});
+				var updateMaybe = F3(
+					function (f, a, model) {
+						var _p8 = a;
+						if (_p8.ctor === 'Nothing') {
+							return model;
+						} else {
+							return A2(f, _p8._0, model);
+						}
+					});
+				var newModel = A3(
+					updateIf,
+					function (_p9) {
+						return _user$project$State$setUnrevealed(
+							A2(_user$project$State$setGameOver, false, _p9));
+					},
+					function (_) {
+						return _.reset;
+					}(_p10),
+					A3(
+						updateIf,
+						_user$project$State$setGameOver(true),
+						function (_) {
+							return _.isGameOver;
+						}(_p10),
+						A3(
+							updateMaybe,
+							_user$project$State$setTurn,
+							function (_) {
+								return _.turn;
+							}(_p10),
+							A3(
+								updateMaybe,
+								_user$project$State$click,
+								function (_) {
+									return _.click;
+								}(_p10),
+								A3(
+									updateMaybe,
+									_user$project$State$setCardWords,
+									function (_) {
+										return _.wordList;
+									}(_p10),
+									A3(
+										updateMaybe,
+										_user$project$State$setCardTypes,
+										function (_) {
+											return _.typeList;
+										}(_p10),
+										model))))));
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					newModel,
 					{ctor: '[]'});
 		}
 	});
+var _user$project$State$blankBoard = A3(_user$project$Grid$grid, 5, 5, _user$project$Types$dummyCard);
+var _user$project$State$newModel = {board: _user$project$State$blankBoard, turn: _user$project$Types$Blue, hints: false, isGameOver: true, wordList: _user$project$Types$NormalWords};
+var _user$project$State$init = A2(
+	_elm_lang$core$Platform_Cmd_ops['!'],
+	_user$project$State$newModel,
+	{ctor: '[]'});
 var _user$project$View$wordListButton = function (wl) {
 	var _p0 = function () {
 		var _p1 = wl;
@@ -15888,6 +16188,18 @@ var _user$project$View$hintsButton = function (isHintsOn) {
 			_1: {ctor: '[]'}
 		});
 };
+var _user$project$View$passButton = A2(
+	_elm_lang$html$Html$button,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Events$onClick(_user$project$Types$PassTurn),
+		_1: {ctor: '[]'}
+	},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('Pass Turn'),
+		_1: {ctor: '[]'}
+	});
 var _user$project$View$resetButton = A2(
 	_elm_lang$html$Html$button,
 	{
@@ -16050,8 +16362,16 @@ var _user$project$View$cardStyle = F2(
 																_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
 																_1: {
 																	ctor: '::',
-																	_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
-																	_1: {ctor: '[]'}
+																	_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'calibri, helvetica, arial, sans-serif'},
+																	_1: {
+																		ctor: '::',
+																		_0: {ctor: '_Tuple2', _0: 'user-select', _1: 'none'},
+																		_1: {
+																			ctor: '::',
+																			_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
+																			_1: {ctor: '[]'}
+																		}
+																	}
 																}
 															}
 														}
@@ -16127,11 +16447,11 @@ var _user$project$View$cardNode = F4(
 				_1: {
 					ctor: '::',
 					_0: _elm_lang$html$Html_Events$onMouseEnter(
-						_user$project$Types$EnterTile(v)),
+						A2(_user$project$Types$MouseOverTile, true, v)),
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseLeave(
-							_user$project$Types$LeaveTile(v)),
+							A2(_user$project$Types$MouseOverTile, false, v)),
 						_1: {
 							ctor: '::',
 							_0: A2(_user$project$View$cardStyle, card, isGameOver),
@@ -16194,8 +16514,12 @@ var _user$project$View$view = function (model) {
 			_0: _user$project$View$resetButton,
 			_1: {
 				ctor: '::',
-				_0: _user$project$View$hintsButton(model.hints),
-				_1: {ctor: '[]'}
+				_0: _user$project$View$passButton,
+				_1: {
+					ctor: '::',
+					_0: _user$project$View$hintsButton(model.hints),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 	var buttonArea = A2(

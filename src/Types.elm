@@ -52,6 +52,7 @@ type Msg =
     | SetWordList WordList
     | ToggleHints
     | Reset
+    | PassTurn
     | MouseOverTile Bool Vector
     | ReceiveMessage Transmission
 

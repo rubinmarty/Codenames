@@ -352,6 +352,11 @@ var _user$project$State$update = F2(
 						_0: _user$project$State$reset(model),
 						_1: {ctor: '[]'}
 					});
+			case 'PassTurn':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_user$project$State$passTurn(model),
+					{ctor: '[]'});
 			case 'MouseOverTile':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],

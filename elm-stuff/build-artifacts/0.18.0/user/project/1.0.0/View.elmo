@@ -76,6 +76,18 @@ var _user$project$View$hintsButton = function (isHintsOn) {
 			_1: {ctor: '[]'}
 		});
 };
+var _user$project$View$passButton = A2(
+	_elm_lang$html$Html$button,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Events$onClick(_user$project$Types$PassTurn),
+		_1: {ctor: '[]'}
+	},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('Pass Turn'),
+		_1: {ctor: '[]'}
+	});
 var _user$project$View$resetButton = A2(
 	_elm_lang$html$Html$button,
 	{
@@ -390,8 +402,12 @@ var _user$project$View$view = function (model) {
 			_0: _user$project$View$resetButton,
 			_1: {
 				ctor: '::',
-				_0: _user$project$View$hintsButton(model.hints),
-				_1: {ctor: '[]'}
+				_0: _user$project$View$passButton,
+				_1: {
+					ctor: '::',
+					_0: _user$project$View$hintsButton(model.hints),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 	var buttonArea = A2(

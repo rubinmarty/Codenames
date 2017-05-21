@@ -37,6 +37,7 @@ var _user$project$Types$MouseOverTile = F2(
 	function (a, b) {
 		return {ctor: 'MouseOverTile', _0: a, _1: b};
 	});
+var _user$project$Types$PassTurn = {ctor: 'PassTurn'};
 var _user$project$Types$Reset = {ctor: 'Reset'};
 var _user$project$Types$ToggleHints = {ctor: 'ToggleHints'};
 var _user$project$Types$SetWordList = function (a) {
