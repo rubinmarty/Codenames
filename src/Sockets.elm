@@ -9,17 +9,13 @@ import Json.Encode as JE
 import Json.Decode as JD exposing (Decoder)
 
 
-
-address : String
-address = "ws://echo.websocket.org"
-
-subscriptions : Sub Msg
-subscriptions =
+subscriptions : String -> Sub Msg
+subscriptions address =
     WebSocket.listen address (\s -> ReceiveMessage <| Maybe.withDefault blank <| deserialize s)
 
-send : Transmission -> Cmd Msg
-send str =
-    WebSocket.send address <| serialize str
+send : String -> Transmission -> Cmd Msg
+send address state =
+    WebSocket.send address <| serialize state
 
 
 
@@ -37,7 +33,7 @@ deserialize str =
 -- ENCODING
 
 vectorE : Vector -> JE.Value
-vectorE v = 
+vectorE v =
     JE.object [("x", JE.int <| getX v), ("y", JE.int <| getY v)]
 
 maybeE : (a -> JE.Value) -> Maybe a -> JE.Value
@@ -104,6 +100,6 @@ teamD =
                 _      -> JD.fail "Invalid Team"
     in
         JD.andThen helper JD.string
-    
+
 vectorD : Decoder Vector
 vectorD = JD.map2 (,) (JD.field "x" JD.int) (JD.field "y" JD.int)

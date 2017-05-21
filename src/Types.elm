@@ -2,6 +2,7 @@ module Types exposing (..)
 
 import Grid exposing (Grid)
 import Vector exposing (Vector)
+import Navigation
 
 
 
@@ -11,6 +12,7 @@ type alias Model =
     , hints : Bool
     , isGameOver : Bool
     , wordList : WordList
+    , serverAddress : String
     }
 
 
@@ -32,7 +34,7 @@ type alias Card =
     , mouseOver : Bool
     }
 dummyCard : Card
-dummyCard = 
+dummyCard =
     { word = ""
     , cardType = Blank
     , revealed = False
@@ -55,6 +57,7 @@ type Msg =
     | PassTurn
     | MouseOverTile Bool Vector
     | ReceiveMessage Transmission
+    | UrlChange Navigation.Location
 
 
 type alias Transmission =

@@ -9,6 +9,7 @@ import WordLists exposing (..)
 
 import Random exposing (Generator, pair)
 import Maybe exposing (withDefault, andThen)
+import Navigation
 
 -- MODEL
 
@@ -22,13 +23,14 @@ newModel =
     , hints = False
     , isGameOver = True
     , wordList = NormalWords
+    , serverAddress = ""
     }
 
-init : (Model, Cmd Msg)
-init =
-     newModel ! []
+init : Navigation.Location -> (Model, Cmd Msg)
+init location =
+    { newModel | serverAddress = "wss://" ++ location.host } ! []
 
-reset : Model -> Cmd Msg 
+reset : Model -> Cmd Msg
 reset model =
     randomInitialState model.wordList
 
@@ -39,9 +41,13 @@ reset model =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
+    let
+        sendToServer =
+            Sockets.send (model.serverAddress ++ "/submit")
+    in
     case msg of
         Click v ->
-            model ! [Sockets.send <| {blank | click = Just v}]
+            model ! [sendToServer {blank | click = Just v}]
         InitState (t, tl, wl) ->
             let
                 trans =
@@ -51,7 +57,7 @@ update msg model =
                                 , reset = True
                                 }
             in
-                model ! [Sockets.send <| trans]
+                model ! [sendToServer trans]
         SetWordList wl ->
             {model | wordList = wl} ! []
         ToggleHints ->
@@ -87,6 +93,8 @@ update msg model =
             in
                 newModel ! []
 
+        UrlChange location ->
+          model ! []
 
 
 
@@ -186,7 +194,7 @@ setUnrevealed model =
         newBoard =
             Grid.map (\card -> {card | revealed = False}) board
     in
-        {model | board = newBoard} 
+        {model | board = newBoard}
 
 setInitState : (Team, List CardType, List String) -> Model -> Model
 setInitState (team, cardTypes, cardWords) model =
@@ -199,7 +207,7 @@ setInitState (team, cardTypes, cardWords) model =
 reveal : Vector -> Model -> Model
 reveal v model =
     let
-        setRevealed card = 
+        setRevealed card =
             {card | revealed = True}
     in
         {model | board = Grid.mapAtV setRevealed v model.board}
@@ -240,4 +248,4 @@ setGameOver b model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sockets.subscriptions
+    Sockets.subscriptions (model.serverAddress ++ "/receive")
