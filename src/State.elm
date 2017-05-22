@@ -13,18 +13,6 @@ import Navigation
 
 -- MODEL
 
-blankBoard : Board
-blankBoard = Grid.grid 5 5 dummyCard
-
-newModel : Model
-newModel =
-    { board = blankBoard
-    , turn = Blue
-    , hints = False
-    , isGameOver = True
-    , wordList = NormalWords
-    , serverAddress = ""
-    }
 
 init : Navigation.Location -> (Model, Cmd Msg)
 init location =
@@ -69,21 +57,33 @@ update msg model =
             setTurn team model ! []
         PassTurn ->
             setTurn (otherTeam model.turn) model ! []
+        LogPush entry ->
+            {model | log = entry::model.log} ! []
         NewGame ->
             model
             |> setUnrevealed
             |> (\m -> {m | hints = False})
-            |> (\m -> {m | isGameOver = False} ! [])
+            |> (\m -> {m | isGameOver = False})
+            |> (\m -> {m | log = []} ! [])
 
         SetWordList wl ->
             {model | wordList = wl} ! []
         SetHints b ->
             {model | hints = b} ! []
+        SetClueBar str ->
+            {model | clue = str} ! []
+        SetClueNumber str ->
+            let
+                int =
+                    String.toInt str
+                    |> Result.withDefault 0
+                    |> clamp 0 25
+            in
+                {model | num = int} ! []
         MouseOverTile b v ->
             {model | board = setMouseOver b v model.board} ! []
         UrlChange location ->
           model ! []
-
 
 
 click : Vector -> Model -> Model
@@ -91,15 +91,44 @@ click v model =
     lookupV v model.board
     |> andThen (\card -> if model.isGameOver then Nothing else Just card)
     |> andThen (\card -> if card.revealed then Nothing else Just card)
-    |> Maybe.map (\card -> case card.cardType of
-                                Blank -> passTurn model
-                                KillWord -> passTurn model
-                                Team t -> if t /= model.turn
-                                    then passTurn model
-                                    else model)
-    |> Maybe.map (reveal v)
-    |> Maybe.map (endGame)
+    |> Maybe.map (\card -> logGuess card.word model
+        |> maybePassTurn card.cardType
+        |> reveal v
+        |> endGame)
     |> withDefault model
+
+reveal : Vector -> Model -> Model
+reveal v model =
+    let
+        setRevealed card =
+            {card | revealed = True}
+    in
+        {model | board = Grid.mapAtV setRevealed v model.board}
+
+maybePassTurn : CardType -> Model -> Model
+maybePassTurn ct model =
+    case ct of
+        Blank -> passTurn model
+        KillWord -> passTurn model
+        Team t -> if t /= model.turn
+            then passTurn model
+            else model
+
+passTurn : Model -> Model
+passTurn model =
+    {model | turn = otherTeam model.turn}
+
+logGuess : String -> Model -> Model
+logGuess str model =
+    let
+        update str (a,b,c,words) =
+            (a,b,c, str::words)
+    in
+        model.log
+        |> List.indexedMap (\i entry -> if i==0 then update str entry else entry)
+        |> (\lg -> {model | log = lg})
+
+
 
 setMouseOver : Bool -> Vector -> Board -> Board
 setMouseOver b v board =
@@ -149,7 +178,6 @@ randomInitialState wl =
         |> Random.generate InitState
 
 
-
 setTurn : Team -> Model -> Model
 setTurn team model =
     {model | turn = team}
@@ -183,18 +211,6 @@ setUnrevealed model =
             Grid.map (\card -> {card | revealed = False}) board
     in
         {model | board = newBoard}
-
-reveal : Vector -> Model -> Model
-reveal v model =
-    let
-        setRevealed card =
-            {card | revealed = True}
-    in
-        {model | board = Grid.mapAtV setRevealed v model.board}
-
-passTurn : Model -> Model
-passTurn model =
-    {model | turn = otherTeam model.turn}
 
 cardsRemaining : Board -> CardType -> Int
 cardsRemaining board cardType =

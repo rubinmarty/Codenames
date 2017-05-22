@@ -22,7 +22,7 @@ send address msgs =
 
 -- SERIALIZATION
 
-debug = False
+debug = True
 
 print : String -> a -> a
 print str =
@@ -51,6 +51,8 @@ msgE msg =
             Just <| JE.object [("SetCardTypes", JE.list <| List.map enumE lct)]
         PassTurn ->
             Just <| JE.object [("PassTurn", JE.null)]
+        LogPush entry ->
+            Just <| JE.object [("LogPush", logEntryE entry)]
         NewGame ->
             Just <| JE.object [("NewGame", JE.null)]
         _ ->
@@ -66,6 +68,15 @@ enumE = JE.string << toString
 vectorE : Vector -> JE.Value
 vectorE v =
     JE.object [("x", JE.int <| getX v), ("y", JE.int <| getY v)]
+
+logEntryE : LogEntry -> JE.Value
+logEntryE (team, clue, num, guesses) =
+    JE.object
+        [ ("team", enumE team)
+        , ("clue", JE.string clue)
+        , ("num", JE.int num)
+        , ("guesses", JE.list <| List.map JE.string guesses)
+        ]
 
 {-
 maybeE : (a -> JE.Value) -> Maybe a -> JE.Value
@@ -84,6 +95,7 @@ msgD =
     , JD.field "SetCardWords" (JD.map SetCardWords (JD.list JD.string))
     , JD.field "SetCardTypes" (JD.map SetCardTypes (JD.list cardTypeD))
     , JD.field "PassTurn" (JD.succeed PassTurn)
+    , JD.field "LogPush" (JD.map LogPush logEntryD)
     , JD.field "NewGame" (JD.succeed NewGame)
     ]
 
@@ -92,12 +104,15 @@ msgsD =
     JD.list msgD
     
 
-nullOr : Decoder a -> Decoder (Maybe a)
-nullOr decoder =
-    JD.oneOf
-    [ JD.null Nothing
-    , JD.map Just decoder
-    ]
+logEntryD : Decoder LogEntry
+logEntryD =
+    JD.map4
+        (,,,)
+        (JD.field "team" teamD)
+        (JD.field "clue" JD.string)
+        (JD.field "num" JD.int)
+        (JD.field "guesses" <| JD.list JD.string)
+
 
 cardTypeD : Decoder CardType
 cardTypeD =

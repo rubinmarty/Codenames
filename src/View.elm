@@ -153,25 +153,63 @@ wordListButton wl =
             onClick <| SetWordList wl
         isChecked =
             wl == NormalWords
-
         button_ =
-            Html.input [type_ "radio", title title_, name "wordList", myClick, checked isChecked] []
-
+            input [type_ "radio", name "wordList", myClick, checked isChecked] []
     in
-        div [] [button_, text text_]
+        label [title title_] [button_, text text_]
+
+clueInput : Model -> Html Msg
+clueInput model =
+    let
+        b =
+            br [] []
+        clueBox =
+            input [type_ "text", onInput SetClueBar, placeholder "Clue"] []
+        numBox =
+            input [type_ "number", onInput SetClueNumber, placeholder "0", value <| toString model.num] []
+        newEntry =
+            (model.turn, model.clue, model.num, [])
+        myEvent =
+            if model.clue /= "" && model.num /= 0
+                then [onClick <| Send [LogPush newEntry]]
+                else []
+        clueButton =
+            button myEvent [text "Submit"]
+    in
+        span [] [clueBox, b, numBox, b, clueButton]
+
+clueDisplay : Model -> Html Msg
+clueDisplay model =
+    let
+        render (team, clue, num, guesses) =
+            div
+                [style [("color", teamColor team)]]
+                [ div [] [text <| clue ++ " : " ++ toString num]
+                , div [] [text <| String.join ", " <| List.reverse guesses]
+                ]
+    in
+        div [] (List.reverse <| List.map render model.log)
 
 view : Model -> Html Msg
 view model =
     let
+        pad = 
+            style [("padding","5px")]
+
         menuButtons =
-            div [] [resetButton, passButton, hintsButton model.hints]
-        wordListButtons =
-            div [] [wordListButton EasyWords, wordListButton NormalWords, wordListButton OriginalWords]
+            span [pad] [resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton NormalWords, br [] [], wordListButton OriginalWords]
+
+        clueButtons =
+            div [pad] [clueInput model, clueDisplay model]
+
         buttonArea =
-            div [] [menuButtons, wordListButtons]
+            div [style [("display","flex")]] [menuButtons, clueButtons]
+
         cardArea =
             Grid.render (\a b -> cardNode a b model.hints model.isGameOver) model.board
+
         infoArea =
             div [] [remainingBox model Blue, remainingBox model Red]
+
     in
         div [] [buttonArea, cardArea, infoArea]
