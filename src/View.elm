@@ -193,14 +193,14 @@ clueDisplay model =
 view : Model -> Html Msg
 view model =
     let
-        pad = 
+        padding = 
             style [("padding","5px")]
 
         menuButtons =
-            span [pad] [resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton NormalWords, br [] [], wordListButton OriginalWords]
+            span [padding] [resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton NormalWords, br [] [], wordListButton OriginalWords]
 
         clueButtons =
-            div [pad] [clueInput model, clueDisplay model]
+            div [padding] [clueInput model, clueDisplay model]
 
         buttonArea =
             div [style [("display","flex")]] [menuButtons, clueButtons]
