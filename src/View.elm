@@ -9,6 +9,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
+----------------------
+--------COLORS--------
+----------------------
+
 cardColor : CardType -> String
 cardColor o =
     case o of
@@ -27,9 +31,20 @@ teamBackgroundColor team =
     case team of
         Blue -> "#ACC" --lightblue
         Red -> "#E88" --lightred
-    
+ 
+----------------------
+--------STYLES--------
+----------------------
 
-cardStyle : Card -> Bool -> Attribute msg
+type alias Style = List (String, String)
+
+buttonStyle : Style
+buttonStyle =
+    [ ("font-size", "180%")
+    , ("margin", "4px")
+    ]
+
+cardStyle : Card -> Bool -> Style
 cardStyle card isGameOver =
     let
         fontColor =
@@ -49,72 +64,108 @@ cardStyle card isGameOver =
                 then "default"
                 else "pointer"
     in
-        style
-            [ ("cursor", cursor)
-            , ("border", "5px solid " ++ borderColor)
-            , ("color", fontColor)
-            , ("background-color", displayColor )
-            , ("height", "90px")
-            , ("width", "180px")
-            , ("display", "inline-block")
-            , ("position", "relative")
-            , ("margin", "1px")
-            , ("border-radius", "20px")
-            , ("text-align", "center")
-            , ("line-height", "270%")
-            , ("font-size", "30px")
-            , ("font-family", "calibri, helvetica, arial, sans-serif")
-            , ("user-select", "none")
-            , ("overflow", "hidden")
-            ]
+        [ ("cursor", cursor)
+        , ("border", "5px solid " ++ borderColor)
+        , ("color", fontColor)
+        , ("background-color", displayColor )
+        , ("height", "90px")
+        , ("width", "180px")
+        , ("display", "inline-block")
+        , ("position", "relative")
+        , ("margin", "1px")
+        , ("border-radius", "20px")
+        , ("text-align", "center")
+        , ("line-height", "270%")
+        , ("font-size", "30px")
+        , ("font-family", "calibri, helvetica, arial, sans-serif")
+        , ("user-select", "none")
+        , ("overflow", "hidden")
+        ]
 
+sashStyle : CardType -> Style
+sashStyle cardType = 
+    [ ("content", "''")
+    , ("width", "10px")
+    , ("height", "50px")
+    , ("transform", "rotate(45deg)")
+    , ("position", "absolute")
+    , ("left", "8px")
+    , ("top", "-12px")
+    , ("background-color", cardColor cardType)
+    ]
+
+remainingBoxStyle : Team -> Bool -> Style
+remainingBoxStyle team active =
+    let
+        borderWidth =
+            if active then "3px" else "1px"
+    in
+        [ ("width", "478px")
+        , ("height", "48px")
+        , ("display", "inline-block")
+        , ("font-size", "30px")
+        , ("text-indent", "10px")
+        , ("line-height", "45px")
+        , ("border-style", "solid")
+        , ("border-width", borderWidth)
+        , ("border-color", teamColor team)
+        , ("background-color", teamBackgroundColor team)
+        ]
+
+clueSectionStyle : Style
+clueSectionStyle =
+    [ ("display", "flex")
+    , ("margin", "5px")
+    , ("border", "1px dashed black")
+    ]
+
+clueDisplayStyle : Style
+clueDisplayStyle =
+    [ ("width", "200px")
+    , ("margin", "4px")
+    , ("overflow-y", "auto")
+    ]
+
+----------------------
+--------NODES---------
+----------------------
 
 cardNode : Vector -> Card -> Bool -> Bool -> Html Msg
 cardNode v card hasHints isGameOver =
     let
+        myText =   
+            text card.word
         mySash =
             if hasHints
                 then sash card.cardType
                 else text ""
-    in
-        span
+        myTriggers =  
             [ onClick <| Send [SetClicked v]
             , onMouseEnter <| MouseOverTile True v
             , onMouseLeave <| MouseOverTile False v
-            , cardStyle card isGameOver
             ]
-            [text card.word, mySash]
+        myStyle =
+            style <| cardStyle card isGameOver
+    in
+        span (myStyle::myTriggers) [myText, mySash]
 
 sash : CardType -> Html Msg
 sash cardType =
-    let
-        myStyle =
-            style
-                [ ("content", "''")
-                , ("width", "10px")
-                , ("height", "50px")
-                , ("transform", "rotate(45deg)")
-                , ("position", "absolute")
-                , ("left", "8px")
-                , ("top", "-12px")
-                , ("background-color", cardColor cardType)
-                ]
-    in
-        div [myStyle] []
+    div [style <| sashStyle cardType] []
 
 resetButton : Html Msg
-resetButton = button [onClick Reset] [text "Reset"]
+resetButton = button [onClick Reset, style buttonStyle] [text "New Game"]
 
 passButton : Html Msg
-passButton = button [onClick <| Send [PassTurn]] [text "Pass Turn"]
+passButton = button [onClick <| Send [PassTurn], style buttonStyle] [text "Pass Turn"]
 
 hintsButton : Bool -> Html Msg
 hintsButton isHintsOn =
     let
         myStyle =
-            style [("width","110px")]
+            style <| [("min-width", "240px")] ++ buttonStyle
         myText =
-            if isHintsOn then "Hide Solutions" else "View Solutions"
+            if isHintsOn then "Hide Solutions" else "Show Solutions"
         myClick =
             onClick <| SetHints <| not isHintsOn
     in
@@ -123,23 +174,12 @@ hintsButton isHintsOn =
 remainingBox : Model -> Team -> Html Msg
 remainingBox model team =
     let
-        border =
-            (if model.turn == team then "3" else "1") ++ "px solid " ++ teamColor team
         myStyle =
-            style
-                [ ("width", "478px")
-                , ("height", "48px")
-                , ("border", border)
-                , ("display", "inline-block")
-                , ("font-size", "30px")
-                , ("text-indent", "10px")
-                , ("line-height", "45px")
-                , ("background-color", teamBackgroundColor team )
-                ]
-        str =
-            (++) "Cards Remaining: " <| toString <| cardsRemaining model.board <| Team team
+            remainingBoxStyle team (team == model.turn)
+        myText =
+            text <| (++) "Cards Remaining: " <| toString <| cardsRemaining model.board <| Team team
     in
-        div [myStyle] [text str]
+        div [style myStyle] [myText]
 
 wordListButton : WordList -> Html Msg
 wordListButton wl =
@@ -164,7 +204,7 @@ clueInput model =
         b =
             br [] []
         clueBox =
-            input [type_ "text", onInput SetClueBar, placeholder "Clue"] []
+            input [type_ "text", onInput SetClueBar, placeholder "Clue", value model.clue] []
         numBox =
             input [type_ "number", onInput SetClueNumber, placeholder "0", value <| toString model.num] []
         newEntry =
@@ -176,7 +216,7 @@ clueInput model =
         clueButton =
             button myEvent [text "Submit"]
     in
-        span [] [clueBox, b, numBox, b, clueButton]
+        span [style [("margin", "4px")]] [clueBox, b, numBox, b, clueButton]
 
 clueDisplay : Model -> Html Msg
 clueDisplay model =
@@ -185,25 +225,24 @@ clueDisplay model =
             div
                 [style [("color", teamColor team)]]
                 [ div [] [text <| clue ++ " : " ++ toString num]
-                , div [] [text <| String.join ", " <| List.reverse guesses]
+                , div [] [text <| (++) "> " <| String.join ", " <| List.reverse guesses]
                 ]
     in
-        div [] (List.reverse <| List.map render model.log)
+        div [style clueDisplayStyle] (List.map render model.log)
 
 view : Model -> Html Msg
 view model =
     let
-        padding = 
-            style [("padding","5px")]
-
         menuButtons =
-            span [padding] [resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton NormalWords, br [] [], wordListButton OriginalWords]
+            span
+            [style [("padding","5px")]]
+            [resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton NormalWords, br [] [], wordListButton OriginalWords]
 
         clueButtons =
-            div [padding] [clueInput model, clueDisplay model]
+            div [style clueSectionStyle] [clueInput model, clueDisplay model]
 
         buttonArea =
-            div [style [("display","flex")]] [menuButtons, clueButtons]
+            div [style [("display","flex"), ("height", "140px")]] [menuButtons, clueButtons]
 
         cardArea =
             Grid.render (\a b -> cardNode a b model.hints model.isGameOver) model.board

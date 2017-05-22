@@ -71,13 +71,17 @@ update msg model =
         SetHints b ->
             {model | hints = b} ! []
         SetClueBar str ->
-            {model | clue = str} ! []
+            let
+                str2 =
+                    String.trim <| String.toUpper <| str
+            in
+                {model | clue = str2} ! []
         SetClueNumber str ->
             let
                 int =
                     String.toInt str
                     |> Result.withDefault 0
-                    |> clamp 0 25
+                    |> clamp 0 9
             in
                 {model | num = int} ! []
         MouseOverTile b v ->

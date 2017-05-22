@@ -10311,33 +10311,14 @@ var _user$project$Grid$grid = F3(
 			y,
 			A2(_elm_lang$core$List$repeat, x, v));
 	});
-var _user$project$Types$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {board: a, turn: b, hints: c, isGameOver: d, wordList: e, serverAddress: f};
+var _user$project$Types$Model = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {board: a, turn: b, hints: c, isGameOver: d, wordList: e, log: f, clue: g, num: h, serverAddress: i};
 	});
 var _user$project$Types$Card = F4(
 	function (a, b, c, d) {
 		return {word: a, cardType: b, revealed: c, mouseOver: d};
 	});
-var _user$project$Types$Red = {ctor: 'Red'};
-var _user$project$Types$Blue = {ctor: 'Blue'};
-var _user$project$Types$otherTeam = function (team) {
-	var _p0 = team;
-	if (_p0.ctor === 'Blue') {
-		return _user$project$Types$Red;
-	} else {
-		return _user$project$Types$Blue;
-	}
-};
-var _user$project$Types$Team = function (a) {
-	return {ctor: 'Team', _0: a};
-};
-var _user$project$Types$KillWord = {ctor: 'KillWord'};
-var _user$project$Types$Blank = {ctor: 'Blank'};
-var _user$project$Types$dummyCard = {word: '', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
-var _user$project$Types$OriginalWords = {ctor: 'OriginalWords'};
-var _user$project$Types$NormalWords = {ctor: 'NormalWords'};
-var _user$project$Types$EasyWords = {ctor: 'EasyWords'};
 var _user$project$Types$UrlChange = function (a) {
 	return {ctor: 'UrlChange', _0: a};
 };
@@ -10345,6 +10326,12 @@ var _user$project$Types$MouseOverTile = F2(
 	function (a, b) {
 		return {ctor: 'MouseOverTile', _0: a, _1: b};
 	});
+var _user$project$Types$SetClueNumber = function (a) {
+	return {ctor: 'SetClueNumber', _0: a};
+};
+var _user$project$Types$SetClueBar = function (a) {
+	return {ctor: 'SetClueBar', _0: a};
+};
 var _user$project$Types$SetHints = function (a) {
 	return {ctor: 'SetHints', _0: a};
 };
@@ -10352,6 +10339,9 @@ var _user$project$Types$SetWordList = function (a) {
 	return {ctor: 'SetWordList', _0: a};
 };
 var _user$project$Types$NewGame = {ctor: 'NewGame'};
+var _user$project$Types$LogPush = function (a) {
+	return {ctor: 'LogPush', _0: a};
+};
 var _user$project$Types$PassTurn = {ctor: 'PassTurn'};
 var _user$project$Types$SetCardTypes = function (a) {
 	return {ctor: 'SetCardTypes', _0: a};
@@ -10375,6 +10365,37 @@ var _user$project$Types$Receive = function (a) {
 var _user$project$Types$Send = function (a) {
 	return {ctor: 'Send', _0: a};
 };
+var _user$project$Types$Red = {ctor: 'Red'};
+var _user$project$Types$Blue = {ctor: 'Blue'};
+var _user$project$Types$otherTeam = function (team) {
+	var _p0 = team;
+	if (_p0.ctor === 'Blue') {
+		return _user$project$Types$Red;
+	} else {
+		return _user$project$Types$Blue;
+	}
+};
+var _user$project$Types$Team = function (a) {
+	return {ctor: 'Team', _0: a};
+};
+var _user$project$Types$KillWord = {ctor: 'KillWord'};
+var _user$project$Types$Blank = {ctor: 'Blank'};
+var _user$project$Types$dummyCard = {word: '', cardType: _user$project$Types$Blank, revealed: false, mouseOver: false};
+var _user$project$Types$blankBoard = A3(_user$project$Grid$grid, 5, 5, _user$project$Types$dummyCard);
+var _user$project$Types$OriginalWords = {ctor: 'OriginalWords'};
+var _user$project$Types$NormalWords = {ctor: 'NormalWords'};
+var _user$project$Types$newModel = {
+	board: _user$project$Types$blankBoard,
+	turn: _user$project$Types$Blue,
+	hints: false,
+	isGameOver: true,
+	wordList: _user$project$Types$NormalWords,
+	log: {ctor: '[]'},
+	clue: '',
+	num: 0,
+	serverAddress: ''
+};
+var _user$project$Types$EasyWords = {ctor: 'EasyWords'};
 var _user$project$Sockets$vectorD = A3(
 	_elm_lang$core$Json_Decode$map2,
 	F2(
@@ -10417,18 +10438,19 @@ var _user$project$Sockets$cardTypeD = function () {
 	};
 	return A2(_elm_lang$core$Json_Decode$andThen, helper, _elm_lang$core$Json_Decode$string);
 }();
-var _user$project$Sockets$nullOr = function (decoder) {
-	return _elm_lang$core$Json_Decode$oneOf(
-		{
-			ctor: '::',
-			_0: _elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
-			_1: {
-				ctor: '::',
-				_0: A2(_elm_lang$core$Json_Decode$map, _elm_lang$core$Maybe$Just, decoder),
-				_1: {ctor: '[]'}
-			}
-		});
-};
+var _user$project$Sockets$logEntryD = A5(
+	_elm_lang$core$Json_Decode$map4,
+	F4(
+		function (v0, v1, v2, v3) {
+			return {ctor: '_Tuple4', _0: v0, _1: v1, _2: v2, _3: v3};
+		}),
+	A2(_elm_lang$core$Json_Decode$field, 'team', _user$project$Sockets$teamD),
+	A2(_elm_lang$core$Json_Decode$field, 'clue', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'num', _elm_lang$core$Json_Decode$int),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'guesses',
+		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string)));
 var _user$project$Sockets$msgD = _elm_lang$core$Json_Decode$oneOf(
 	{
 		ctor: '::',
@@ -10470,9 +10492,16 @@ var _user$project$Sockets$msgD = _elm_lang$core$Json_Decode$oneOf(
 							ctor: '::',
 							_0: A2(
 								_elm_lang$core$Json_Decode$field,
-								'NewGame',
-								_elm_lang$core$Json_Decode$succeed(_user$project$Types$NewGame)),
-							_1: {ctor: '[]'}
+								'LogPush',
+								A2(_elm_lang$core$Json_Decode$map, _user$project$Types$LogPush, _user$project$Sockets$logEntryD)),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$core$Json_Decode$field,
+									'NewGame',
+									_elm_lang$core$Json_Decode$succeed(_user$project$Types$NewGame)),
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}
@@ -10506,9 +10535,47 @@ var _user$project$Sockets$enumE = function (_p2) {
 	return _elm_lang$core$Json_Encode$string(
 		_elm_lang$core$Basics$toString(_p2));
 };
+var _user$project$Sockets$logEntryE = function (_p3) {
+	var _p4 = _p3;
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'team',
+				_1: _user$project$Sockets$enumE(_p4._0)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'clue',
+					_1: _elm_lang$core$Json_Encode$string(_p4._1)
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'num',
+						_1: _elm_lang$core$Json_Encode$int(_p4._2)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'guesses',
+							_1: _elm_lang$core$Json_Encode$list(
+								A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, _p4._3))
+						},
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};
 var _user$project$Sockets$msgE = function (msg) {
-	var _p3 = msg;
-	switch (_p3.ctor) {
+	var _p5 = msg;
+	switch (_p5.ctor) {
 		case 'SetClicked':
 			return _elm_lang$core$Maybe$Just(
 				_elm_lang$core$Json_Encode$object(
@@ -10517,7 +10584,7 @@ var _user$project$Sockets$msgE = function (msg) {
 						_0: {
 							ctor: '_Tuple2',
 							_0: 'SetClicked',
-							_1: _user$project$Sockets$vectorE(_p3._0)
+							_1: _user$project$Sockets$vectorE(_p5._0)
 						},
 						_1: {ctor: '[]'}
 					}));
@@ -10529,7 +10596,7 @@ var _user$project$Sockets$msgE = function (msg) {
 						_0: {
 							ctor: '_Tuple2',
 							_0: 'SetTurn',
-							_1: _user$project$Sockets$enumE(_p3._0)
+							_1: _user$project$Sockets$enumE(_p5._0)
 						},
 						_1: {ctor: '[]'}
 					}));
@@ -10542,7 +10609,7 @@ var _user$project$Sockets$msgE = function (msg) {
 							ctor: '_Tuple2',
 							_0: 'SetCardWords',
 							_1: _elm_lang$core$Json_Encode$list(
-								A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, _p3._0))
+								A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, _p5._0))
 						},
 						_1: {ctor: '[]'}
 					}));
@@ -10555,7 +10622,7 @@ var _user$project$Sockets$msgE = function (msg) {
 							ctor: '_Tuple2',
 							_0: 'SetCardTypes',
 							_1: _elm_lang$core$Json_Encode$list(
-								A2(_elm_lang$core$List$map, _user$project$Sockets$enumE, _p3._0))
+								A2(_elm_lang$core$List$map, _user$project$Sockets$enumE, _p5._0))
 						},
 						_1: {ctor: '[]'}
 					}));
@@ -10565,6 +10632,18 @@ var _user$project$Sockets$msgE = function (msg) {
 					{
 						ctor: '::',
 						_0: {ctor: '_Tuple2', _0: 'PassTurn', _1: _elm_lang$core$Json_Encode$null},
+						_1: {ctor: '[]'}
+					}));
+		case 'LogPush':
+			return _elm_lang$core$Maybe$Just(
+				_elm_lang$core$Json_Encode$object(
+					{
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'LogPush',
+							_1: _user$project$Sockets$logEntryE(_p5._0)
+						},
 						_1: {ctor: '[]'}
 					}));
 		case 'NewGame':
@@ -10583,11 +10662,11 @@ var _user$project$Sockets$msgsE = function (msgs) {
 	return _elm_lang$core$Json_Encode$list(
 		A2(_elm_lang$core$List$filterMap, _user$project$Sockets$msgE, msgs));
 };
-var _user$project$Sockets$debug = false;
+var _user$project$Sockets$debug = true;
 var _user$project$Sockets$print = function (str) {
 	return _user$project$Sockets$debug ? _elm_lang$core$Debug$log(str) : _elm_lang$core$Basics$identity;
 };
-var _user$project$Sockets$serialize = function (_p4) {
+var _user$project$Sockets$serialize = function (_p6) {
 	return A2(
 		_user$project$Sockets$print,
 		'sending',
@@ -10595,9 +10674,9 @@ var _user$project$Sockets$serialize = function (_p4) {
 			_elm_lang$core$Json_Encode$encode,
 			0,
 			_user$project$Sockets$msgsE(
-				A2(_user$project$Sockets$print, 'about to encode', _p4))));
+				A2(_user$project$Sockets$print, 'about to encode', _p6))));
 };
-var _user$project$Sockets$deserialize = function (_p5) {
+var _user$project$Sockets$deserialize = function (_p7) {
 	return A2(
 		_user$project$Sockets$print,
 		'decoded',
@@ -10607,7 +10686,7 @@ var _user$project$Sockets$deserialize = function (_p5) {
 			A2(
 				_elm_lang$core$Json_Decode$decodeString,
 				_user$project$Sockets$msgsD,
-				A2(_user$project$Sockets$print, 'received', _p5))));
+				A2(_user$project$Sockets$print, 'received', _p7))));
 };
 var _user$project$Sockets$send = F2(
 	function (address, msgs) {
@@ -10620,9 +10699,9 @@ var _user$project$Sockets$subscriptions = function (address) {
 	return A2(
 		_elm_lang$websocket$WebSocket$listen,
 		address,
-		function (_p6) {
+		function (_p8) {
 			return _user$project$Types$Receive(
-				_user$project$Sockets$deserialize(_p6));
+				_user$project$Sockets$deserialize(_p8));
 		});
 };
 var _user$project$RandomList$get = F2(
@@ -16370,26 +16449,6 @@ var _user$project$State$endGame = function (model) {
 		model,
 		{isGameOver: true}) : model;
 };
-var _user$project$State$passTurn = function (model) {
-	return _elm_lang$core$Native_Utils.update(
-		model,
-		{
-			turn: _user$project$Types$otherTeam(model.turn)
-		});
-};
-var _user$project$State$reveal = F2(
-	function (v, model) {
-		var setRevealed = function (card) {
-			return _elm_lang$core$Native_Utils.update(
-				card,
-				{revealed: true});
-		};
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				board: A3(_user$project$Grid$mapAtV, setRevealed, v, model.board)
-			});
-	});
 var _user$project$State$setUnrevealed = function (model) {
 	var board = model.board;
 	var newBoard = A2(
@@ -16559,6 +16618,64 @@ var _user$project$State$setMouseOver = F3(
 					},
 					A2(_user$project$Grid$lookupV, v, board))));
 	});
+var _user$project$State$logGuess = F2(
+	function (str, model) {
+		var update = F2(
+			function (str, _p4) {
+				var _p5 = _p4;
+				return {
+					ctor: '_Tuple4',
+					_0: _p5._0,
+					_1: _p5._1,
+					_2: _p5._2,
+					_3: {ctor: '::', _0: str, _1: _p5._3}
+				};
+			});
+		return function (lg) {
+			return _elm_lang$core$Native_Utils.update(
+				model,
+				{log: lg});
+		}(
+			A2(
+				_elm_lang$core$List$indexedMap,
+				F2(
+					function (i, entry) {
+						return _elm_lang$core$Native_Utils.eq(i, 0) ? A2(update, str, entry) : entry;
+					}),
+				model.log));
+	});
+var _user$project$State$passTurn = function (model) {
+	return _elm_lang$core$Native_Utils.update(
+		model,
+		{
+			turn: _user$project$Types$otherTeam(model.turn)
+		});
+};
+var _user$project$State$maybePassTurn = F2(
+	function (ct, model) {
+		var _p6 = ct;
+		switch (_p6.ctor) {
+			case 'Blank':
+				return _user$project$State$passTurn(model);
+			case 'KillWord':
+				return _user$project$State$passTurn(model);
+			default:
+				return (!_elm_lang$core$Native_Utils.eq(_p6._0, model.turn)) ? _user$project$State$passTurn(model) : model;
+		}
+	});
+var _user$project$State$reveal = F2(
+	function (v, model) {
+		var setRevealed = function (card) {
+			return _elm_lang$core$Native_Utils.update(
+				card,
+				{revealed: true});
+		};
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				board: A3(_user$project$Grid$mapAtV, setRevealed, v, model.board)
+			});
+	});
 var _user$project$State$click = F2(
 	function (v, model) {
 		return A2(
@@ -16566,34 +16683,27 @@ var _user$project$State$click = F2(
 			model,
 			A2(
 				_elm_lang$core$Maybe$map,
-				_user$project$State$endGame,
-				A2(
-					_elm_lang$core$Maybe$map,
-					_user$project$State$reveal(v),
-					A2(
-						_elm_lang$core$Maybe$map,
-						function (card) {
-							var _p4 = card.cardType;
-							switch (_p4.ctor) {
-								case 'Blank':
-									return _user$project$State$passTurn(model);
-								case 'KillWord':
-									return _user$project$State$passTurn(model);
-								default:
-									return (!_elm_lang$core$Native_Utils.eq(_p4._0, model.turn)) ? _user$project$State$passTurn(model) : model;
-							}
-						},
+				function (card) {
+					return _user$project$State$endGame(
 						A2(
-							_elm_lang$core$Maybe$andThen,
-							function (card) {
-								return card.revealed ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
-							},
+							_user$project$State$reveal,
+							v,
 							A2(
-								_elm_lang$core$Maybe$andThen,
-								function (card) {
-									return model.isGameOver ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
-								},
-								A2(_user$project$Grid$lookupV, v, model.board)))))));
+								_user$project$State$maybePassTurn,
+								card.cardType,
+								A2(_user$project$State$logGuess, card.word, model))));
+				},
+				A2(
+					_elm_lang$core$Maybe$andThen,
+					function (card) {
+						return card.revealed ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
+					},
+					A2(
+						_elm_lang$core$Maybe$andThen,
+						function (card) {
+							return model.isGameOver ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(card);
+						},
+						A2(_user$project$Grid$lookupV, v, model.board)))));
 	});
 var _user$project$State$update = F2(
 	function (msg, model) {
@@ -16603,15 +16713,15 @@ var _user$project$State$update = F2(
 				A2(_elm_lang$core$Basics_ops['++'], model.serverAddress, '/submit'),
 				msgs);
 		};
-		var _p5 = msg;
-		switch (_p5.ctor) {
+		var _p7 = msg;
+		switch (_p7.ctor) {
 			case 'Send':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					{
 						ctor: '::',
-						_0: send(_p5._0),
+						_0: send(_p7._0),
 						_1: {ctor: '[]'}
 					});
 			case 'Receive':
@@ -16628,7 +16738,7 @@ var _user$project$State$update = F2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
 						{ctor: '[]'}),
-					_p5._0);
+					_p7._0);
 			case 'Reset':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -16644,13 +16754,13 @@ var _user$project$State$update = F2(
 					_0: _user$project$Types$NewGame,
 					_1: {
 						ctor: '::',
-						_0: _user$project$Types$SetTurn(_p5._0._0),
+						_0: _user$project$Types$SetTurn(_p7._0._0),
 						_1: {
 							ctor: '::',
-							_0: _user$project$Types$SetCardTypes(_p5._0._1),
+							_0: _user$project$Types$SetCardTypes(_p7._0._1),
 							_1: {
 								ctor: '::',
-								_0: _user$project$Types$SetCardWords(_p5._0._2),
+								_0: _user$project$Types$SetCardWords(_p7._0._2),
 								_1: {
 									ctor: '::',
 									_0: _user$project$Types$SetHints(false),
@@ -16671,22 +16781,22 @@ var _user$project$State$update = F2(
 			case 'SetClicked':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					A2(_user$project$State$click, _p5._0, model),
+					A2(_user$project$State$click, _p7._0, model),
 					{ctor: '[]'});
 			case 'SetCardTypes':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					A2(_user$project$State$setCardTypes, _p5._0, model),
+					A2(_user$project$State$setCardTypes, _p7._0, model),
 					{ctor: '[]'});
 			case 'SetCardWords':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					A2(_user$project$State$setCardWords, _p5._0, model),
+					A2(_user$project$State$setCardWords, _p7._0, model),
 					{ctor: '[]'});
 			case 'SetTurn':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					A2(_user$project$State$setTurn, _p5._0, model),
+					A2(_user$project$State$setTurn, _p7._0, model),
 					{ctor: '[]'});
 			case 'PassTurn':
 				return A2(
@@ -16696,34 +16806,72 @@ var _user$project$State$update = F2(
 						_user$project$Types$otherTeam(model.turn),
 						model),
 					{ctor: '[]'});
+			case 'LogPush':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							log: {ctor: '::', _0: _p7._0, _1: model.log}
+						}),
+					{ctor: '[]'});
 			case 'NewGame':
 				return function (m) {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							m,
-							{isGameOver: false}),
+							{
+								log: {ctor: '[]'}
+							}),
 						{ctor: '[]'});
 				}(
 					function (m) {
 						return _elm_lang$core$Native_Utils.update(
 							m,
-							{hints: false});
+							{isGameOver: false});
 					}(
-						_user$project$State$setUnrevealed(model)));
+						function (m) {
+							return _elm_lang$core$Native_Utils.update(
+								m,
+								{hints: false});
+						}(
+							_user$project$State$setUnrevealed(model))));
 			case 'SetWordList':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{wordList: _p5._0}),
+						{wordList: _p7._0}),
 					{ctor: '[]'});
 			case 'SetHints':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{hints: _p5._0}),
+						{hints: _p7._0}),
+					{ctor: '[]'});
+			case 'SetClueBar':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{clue: _p7._0}),
+					{ctor: '[]'});
+			case 'SetClueNumber':
+				var $int = A3(
+					_elm_lang$core$Basics$clamp,
+					0,
+					25,
+					A2(
+						_elm_lang$core$Result$withDefault,
+						0,
+						_elm_lang$core$String$toInt(_p7._0)));
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{num: $int}),
 					{ctor: '[]'});
 			case 'MouseOverTile':
 				return A2(
@@ -16731,7 +16879,7 @@ var _user$project$State$update = F2(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
-							board: A3(_user$project$State$setMouseOver, _p5._0, _p5._1, model.board)
+							board: A3(_user$project$State$setMouseOver, _p7._0, _p7._1, model.board)
 						}),
 					{ctor: '[]'});
 			default:
@@ -16741,22 +16889,133 @@ var _user$project$State$update = F2(
 					{ctor: '[]'});
 		}
 	});
-var _user$project$State$blankBoard = A3(_user$project$Grid$grid, 5, 5, _user$project$Types$dummyCard);
-var _user$project$State$newModel = {board: _user$project$State$blankBoard, turn: _user$project$Types$Blue, hints: false, isGameOver: true, wordList: _user$project$Types$NormalWords, serverAddress: ''};
 var _user$project$State$init = function (location) {
 	return A2(
 		_elm_lang$core$Platform_Cmd_ops['!'],
 		_elm_lang$core$Native_Utils.update(
-			_user$project$State$newModel,
+			_user$project$Types$newModel,
 			{
 				serverAddress: A2(_elm_lang$core$Basics_ops['++'], 'wss://', location.host)
 			}),
 		{ctor: '[]'});
 };
+var _user$project$View$clueInput = function (model) {
+	var newEntry = {
+		ctor: '_Tuple4',
+		_0: model.turn,
+		_1: model.clue,
+		_2: model.num,
+		_3: {ctor: '[]'}
+	};
+	var myEvent = ((!_elm_lang$core$Native_Utils.eq(model.clue, '')) && (!_elm_lang$core$Native_Utils.eq(model.num, 0))) ? {
+		ctor: '::',
+		_0: _elm_lang$html$Html_Events$onClick(
+			_user$project$Types$Send(
+				{
+					ctor: '::',
+					_0: _user$project$Types$LogPush(newEntry),
+					_1: {ctor: '[]'}
+				})),
+		_1: {ctor: '[]'}
+	} : {ctor: '[]'};
+	var clueButton = A2(
+		_elm_lang$html$Html$button,
+		myEvent,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text('Submit'),
+			_1: {ctor: '[]'}
+		});
+	var numBox = A2(
+		_elm_lang$html$Html$input,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$type_('number'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onInput(_user$project$Types$SetClueNumber),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$placeholder('0'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$value(
+							_elm_lang$core$Basics$toString(model.num)),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		},
+		{ctor: '[]'});
+	var clueBox = A2(
+		_elm_lang$html$Html$input,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$type_('text'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onInput(_user$project$Types$SetClueBar),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$placeholder('Clue'),
+					_1: {ctor: '[]'}
+				}
+			}
+		},
+		{ctor: '[]'});
+	var b = A2(
+		_elm_lang$html$Html$br,
+		{ctor: '[]'},
+		{ctor: '[]'});
+	return A2(
+		_elm_lang$html$Html$span,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: clueBox,
+			_1: {
+				ctor: '::',
+				_0: b,
+				_1: {
+					ctor: '::',
+					_0: numBox,
+					_1: {
+						ctor: '::',
+						_0: b,
+						_1: {
+							ctor: '::',
+							_0: clueButton,
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		});
+};
 var _user$project$View$wordListButton = function (wl) {
 	var isChecked = _elm_lang$core$Native_Utils.eq(wl, _user$project$Types$NormalWords);
 	var myClick = _elm_lang$html$Html_Events$onClick(
 		_user$project$Types$SetWordList(wl));
+	var button_ = A2(
+		_elm_lang$html$Html$input,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$type_('radio'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$name('wordList'),
+				_1: {
+					ctor: '::',
+					_0: myClick,
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$checked(isChecked),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		},
+		{ctor: '[]'});
 	var _p0 = function () {
 		var _p1 = wl;
 		switch (_p1.ctor) {
@@ -16770,33 +17029,13 @@ var _user$project$View$wordListButton = function (wl) {
 	}();
 	var text_ = _p0._0;
 	var title_ = _p0._1;
-	var button_ = A2(
-		_elm_lang$html$Html$input,
+	return A2(
+		_elm_lang$html$Html$label,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$type_('radio'),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$title(title_),
-				_1: {
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$name('wordList'),
-					_1: {
-						ctor: '::',
-						_0: myClick,
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$checked(isChecked),
-							_1: {ctor: '[]'}
-						}
-					}
-				}
-			}
+			_0: _elm_lang$html$Html_Attributes$title(title_),
+			_1: {ctor: '[]'}
 		},
-		{ctor: '[]'});
-	return A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
 		{
 			ctor: '::',
 			_0: button_,
@@ -16807,16 +17046,66 @@ var _user$project$View$wordListButton = function (wl) {
 			}
 		});
 };
+var _user$project$View$buttonStyle = {
+	ctor: '::',
+	_0: {ctor: '_Tuple2', _0: 'font-size', _1: '2em'},
+	_1: {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'margin', _1: '4px'},
+		_1: {ctor: '[]'}
+	}
+};
+var _user$project$View$resetButton = A2(
+	_elm_lang$html$Html$button,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Events$onClick(_user$project$Types$Reset),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(_user$project$View$buttonStyle),
+			_1: {ctor: '[]'}
+		}
+	},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('New Game'),
+		_1: {ctor: '[]'}
+	});
+var _user$project$View$passButton = A2(
+	_elm_lang$html$Html$button,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Events$onClick(
+			_user$project$Types$Send(
+				{
+					ctor: '::',
+					_0: _user$project$Types$PassTurn,
+					_1: {ctor: '[]'}
+				})),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(_user$project$View$buttonStyle),
+			_1: {ctor: '[]'}
+		}
+	},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('Pass Turn'),
+		_1: {ctor: '[]'}
+	});
 var _user$project$View$hintsButton = function (isHintsOn) {
 	var myClick = _elm_lang$html$Html_Events$onClick(
 		_user$project$Types$SetHints(!isHintsOn));
-	var myText = isHintsOn ? 'Hide Solutions' : 'View Solutions';
+	var myText = isHintsOn ? 'Hide Solutions' : 'Show Solutions';
 	var myStyle = _elm_lang$html$Html_Attributes$style(
-		{
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'width', _1: '110px'},
-			_1: {ctor: '[]'}
-		});
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			{
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'min-width', _1: '240px'},
+				_1: {ctor: '[]'}
+			},
+			_user$project$View$buttonStyle));
 	return A2(
 		_elm_lang$html$Html$button,
 		{
@@ -16834,36 +17123,6 @@ var _user$project$View$hintsButton = function (isHintsOn) {
 			_1: {ctor: '[]'}
 		});
 };
-var _user$project$View$passButton = A2(
-	_elm_lang$html$Html$button,
-	{
-		ctor: '::',
-		_0: _elm_lang$html$Html_Events$onClick(
-			_user$project$Types$Send(
-				{
-					ctor: '::',
-					_0: _user$project$Types$PassTurn,
-					_1: {ctor: '[]'}
-				})),
-		_1: {ctor: '[]'}
-	},
-	{
-		ctor: '::',
-		_0: _elm_lang$html$Html$text('Pass Turn'),
-		_1: {ctor: '[]'}
-	});
-var _user$project$View$resetButton = A2(
-	_elm_lang$html$Html$button,
-	{
-		ctor: '::',
-		_0: _elm_lang$html$Html_Events$onClick(_user$project$Types$Reset),
-		_1: {ctor: '[]'}
-	},
-	{
-		ctor: '::',
-		_0: _elm_lang$html$Html$text('Reset'),
-		_1: {ctor: '[]'}
-	});
 var _user$project$View$teamBackgroundColor = function (team) {
 	var _p2 = team;
 	if (_p2.ctor === 'Blue') {
@@ -16880,56 +17139,49 @@ var _user$project$View$teamColor = function (t) {
 		return 'Red';
 	}
 };
-var _user$project$View$remainingBox = F2(
-	function (model, team) {
-		var str = A2(
-			F2(
-				function (x, y) {
-					return A2(_elm_lang$core$Basics_ops['++'], x, y);
-				}),
-			'Cards Remaining: ',
-			_elm_lang$core$Basics$toString(
-				A2(
-					_user$project$State$cardsRemaining,
-					model.board,
-					_user$project$Types$Team(team))));
-		var border = A2(
-			_elm_lang$core$Basics_ops['++'],
-			_elm_lang$core$Native_Utils.eq(model.turn, team) ? '3' : '1',
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'px solid ',
-				_user$project$View$teamColor(team)));
-		var myStyle = _elm_lang$html$Html_Attributes$style(
-			{
+var _user$project$View$remainingBoxStyle = F2(
+	function (team, active) {
+		var borderWidth = active ? '3px' : '1px';
+		return {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'width', _1: '478px'},
+			_1: {
 				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'width', _1: '478px'},
+				_0: {ctor: '_Tuple2', _0: 'height', _1: '48px'},
 				_1: {
 					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'height', _1: '48px'},
+					_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
 					_1: {
 						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'border', _1: border},
+						_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
 						_1: {
 							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
+							_0: {ctor: '_Tuple2', _0: 'text-indent', _1: '10px'},
 							_1: {
 								ctor: '::',
-								_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
+								_0: {ctor: '_Tuple2', _0: 'line-height', _1: '45px'},
 								_1: {
 									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'text-indent', _1: '10px'},
+									_0: {ctor: '_Tuple2', _0: 'border-style', _1: 'solid'},
 									_1: {
 										ctor: '::',
-										_0: {ctor: '_Tuple2', _0: 'line-height', _1: '45px'},
+										_0: {ctor: '_Tuple2', _0: 'border-width', _1: borderWidth},
 										_1: {
 											ctor: '::',
 											_0: {
 												ctor: '_Tuple2',
-												_0: 'background-color',
-												_1: _user$project$View$teamBackgroundColor(team)
+												_0: 'border-color',
+												_1: _user$project$View$teamColor(team)
 											},
-											_1: {ctor: '[]'}
+											_1: {
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: 'background-color',
+													_1: _user$project$View$teamBackgroundColor(team)
+												},
+												_1: {ctor: '[]'}
+											}
 										}
 									}
 								}
@@ -16937,29 +17189,109 @@ var _user$project$View$remainingBox = F2(
 						}
 					}
 				}
-			});
+			}
+		};
+	});
+var _user$project$View$remainingBox = F2(
+	function (model, team) {
+		var myText = _elm_lang$html$Html$text(
+			A2(
+				F2(
+					function (x, y) {
+						return A2(_elm_lang$core$Basics_ops['++'], x, y);
+					}),
+				'Cards Remaining: ',
+				_elm_lang$core$Basics$toString(
+					A2(
+						_user$project$State$cardsRemaining,
+						model.board,
+						_user$project$Types$Team(team)))));
+		var myStyle = A2(
+			_user$project$View$remainingBoxStyle,
+			team,
+			_elm_lang$core$Native_Utils.eq(team, model.turn));
 		return A2(
 			_elm_lang$html$Html$div,
 			{
 				ctor: '::',
-				_0: myStyle,
+				_0: _elm_lang$html$Html_Attributes$style(myStyle),
 				_1: {ctor: '[]'}
 			},
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html$text(str),
+				_0: myText,
 				_1: {ctor: '[]'}
 			});
 	});
+var _user$project$View$clueDisplay = function (model) {
+	var render = function (_p4) {
+		var _p5 = _p4;
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'color',
+							_1: _user$project$View$teamColor(_p5._0)
+						},
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_p5._1,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									' : ',
+									_elm_lang$core$Basics$toString(_p5._2)))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								A2(
+									_elm_lang$core$String$join,
+									', ',
+									_elm_lang$core$List$reverse(_p5._3))),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	};
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		_elm_lang$core$List$reverse(
+			A2(_elm_lang$core$List$map, render, model.log)));
+};
 var _user$project$View$cardColor = function (o) {
-	var _p4 = o;
-	switch (_p4.ctor) {
+	var _p6 = o;
+	switch (_p6.ctor) {
 		case 'Blank':
 			return 'Gray';
 		case 'KillWord':
 			return 'Black';
 		default:
-			return _user$project$View$teamColor(_p4._0);
+			return _user$project$View$teamColor(_p6._0);
 	}
 };
 var _user$project$View$cardStyle = F2(
@@ -16968,61 +17300,59 @@ var _user$project$View$cardStyle = F2(
 		var displayColor = card.revealed ? _user$project$View$cardColor(card.cardType) : 'rgb(240,232,196)';
 		var borderColor = card.mouseOver ? '#5AF' : 'Black';
 		var fontColor = (card.revealed && _elm_lang$core$Native_Utils.eq(card.cardType, _user$project$Types$KillWord)) ? 'white' : 'black';
-		return _elm_lang$html$Html_Attributes$style(
-			{
+		return {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'cursor', _1: cursor},
+			_1: {
 				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'cursor', _1: cursor},
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'border',
+					_1: A2(_elm_lang$core$Basics_ops['++'], '5px solid ', borderColor)
+				},
 				_1: {
 					ctor: '::',
-					_0: {
-						ctor: '_Tuple2',
-						_0: 'border',
-						_1: A2(_elm_lang$core$Basics_ops['++'], '5px solid ', borderColor)
-					},
+					_0: {ctor: '_Tuple2', _0: 'color', _1: fontColor},
 					_1: {
 						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'color', _1: fontColor},
+						_0: {ctor: '_Tuple2', _0: 'background-color', _1: displayColor},
 						_1: {
 							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'background-color', _1: displayColor},
+							_0: {ctor: '_Tuple2', _0: 'height', _1: '90px'},
 							_1: {
 								ctor: '::',
-								_0: {ctor: '_Tuple2', _0: 'height', _1: '90px'},
+								_0: {ctor: '_Tuple2', _0: 'width', _1: '180px'},
 								_1: {
 									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'width', _1: '180px'},
+									_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
 									_1: {
 										ctor: '::',
-										_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
+										_0: {ctor: '_Tuple2', _0: 'position', _1: 'relative'},
 										_1: {
 											ctor: '::',
-											_0: {ctor: '_Tuple2', _0: 'position', _1: 'relative'},
+											_0: {ctor: '_Tuple2', _0: 'margin', _1: '1px'},
 											_1: {
 												ctor: '::',
-												_0: {ctor: '_Tuple2', _0: 'margin', _1: '1px'},
+												_0: {ctor: '_Tuple2', _0: 'border-radius', _1: '20px'},
 												_1: {
 													ctor: '::',
-													_0: {ctor: '_Tuple2', _0: 'border-radius', _1: '20px'},
+													_0: {ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
 													_1: {
 														ctor: '::',
-														_0: {ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+														_0: {ctor: '_Tuple2', _0: 'line-height', _1: '270%'},
 														_1: {
 															ctor: '::',
-															_0: {ctor: '_Tuple2', _0: 'line-height', _1: '270%'},
+															_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
 															_1: {
 																ctor: '::',
-																_0: {ctor: '_Tuple2', _0: 'font-size', _1: '30px'},
+																_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'calibri, helvetica, arial, sans-serif'},
 																_1: {
 																	ctor: '::',
-																	_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'calibri, helvetica, arial, sans-serif'},
+																	_0: {ctor: '_Tuple2', _0: 'user-select', _1: 'none'},
 																	_1: {
 																		ctor: '::',
-																		_0: {ctor: '_Tuple2', _0: 'user-select', _1: 'none'},
-																		_1: {
-																			ctor: '::',
-																			_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
-																			_1: {ctor: '[]'}
-																		}
+																		_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
+																		_1: {ctor: '[]'}
 																	}
 																}
 															}
@@ -17037,89 +17367,92 @@ var _user$project$View$cardStyle = F2(
 						}
 					}
 				}
-			});
+			}
+		};
 	});
-var _user$project$View$sash = function (cardType) {
-	var myStyle = _elm_lang$html$Html_Attributes$style(
-		{
+var _user$project$View$sashStyle = function (cardType) {
+	return {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'content', _1: '\'\''},
+		_1: {
 			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'content', _1: '\'\''},
+			_0: {ctor: '_Tuple2', _0: 'width', _1: '10px'},
 			_1: {
 				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'width', _1: '10px'},
+				_0: {ctor: '_Tuple2', _0: 'height', _1: '50px'},
 				_1: {
 					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'height', _1: '50px'},
+					_0: {ctor: '_Tuple2', _0: 'transform', _1: 'rotate(45deg)'},
 					_1: {
 						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'transform', _1: 'rotate(45deg)'},
+						_0: {ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
 						_1: {
 							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
+							_0: {ctor: '_Tuple2', _0: 'left', _1: '8px'},
 							_1: {
 								ctor: '::',
-								_0: {ctor: '_Tuple2', _0: 'left', _1: '8px'},
+								_0: {ctor: '_Tuple2', _0: 'top', _1: '-12px'},
 								_1: {
 									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'top', _1: '-12px'},
-									_1: {
-										ctor: '::',
-										_0: {
-											ctor: '_Tuple2',
-											_0: 'background-color',
-											_1: _user$project$View$cardColor(cardType)
-										},
-										_1: {ctor: '[]'}
-									}
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'background-color',
+										_1: _user$project$View$cardColor(cardType)
+									},
+									_1: {ctor: '[]'}
 								}
 							}
 						}
 					}
 				}
 			}
-		});
+		}
+	};
+};
+var _user$project$View$sash = function (cardType) {
 	return A2(
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: myStyle,
+			_0: _elm_lang$html$Html_Attributes$style(
+				_user$project$View$sashStyle(cardType)),
 			_1: {ctor: '[]'}
 		},
 		{ctor: '[]'});
 };
 var _user$project$View$cardNode = F4(
 	function (v, card, hasHints, isGameOver) {
-		var mySash = hasHints ? _user$project$View$sash(card.cardType) : _elm_lang$html$Html$text('');
-		return A2(
-			_elm_lang$html$Html$span,
-			{
+		var myStyle = _elm_lang$html$Html_Attributes$style(
+			A2(_user$project$View$cardStyle, card, isGameOver));
+		var myTriggers = {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Events$onClick(
+				_user$project$Types$Send(
+					{
+						ctor: '::',
+						_0: _user$project$Types$SetClicked(v),
+						_1: {ctor: '[]'}
+					})),
+			_1: {
 				ctor: '::',
-				_0: _elm_lang$html$Html_Events$onClick(
-					_user$project$Types$Send(
-						{
-							ctor: '::',
-							_0: _user$project$Types$SetClicked(v),
-							_1: {ctor: '[]'}
-						})),
+				_0: _elm_lang$html$Html_Events$onMouseEnter(
+					A2(_user$project$Types$MouseOverTile, true, v)),
 				_1: {
 					ctor: '::',
-					_0: _elm_lang$html$Html_Events$onMouseEnter(
-						A2(_user$project$Types$MouseOverTile, true, v)),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$html$Html_Events$onMouseLeave(
-							A2(_user$project$Types$MouseOverTile, false, v)),
-						_1: {
-							ctor: '::',
-							_0: A2(_user$project$View$cardStyle, card, isGameOver),
-							_1: {ctor: '[]'}
-						}
-					}
+					_0: _elm_lang$html$Html_Events$onMouseLeave(
+						A2(_user$project$Types$MouseOverTile, false, v)),
+					_1: {ctor: '[]'}
 				}
-			},
+			}
+		};
+		var mySash = hasHints ? _user$project$View$sash(card.cardType) : _elm_lang$html$Html$text('');
+		var myText = _elm_lang$html$Html$text(card.word);
+		return A2(
+			_elm_lang$html$Html$span,
+			{ctor: '::', _0: myStyle, _1: myTriggers},
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html$text(card.word),
+				_0: myText,
 				_1: {
 					ctor: '::',
 					_0: mySash,
@@ -17147,25 +17480,19 @@ var _user$project$View$view = function (model) {
 				return A4(_user$project$View$cardNode, a, b, model.hints, model.isGameOver);
 			}),
 		model.board);
-	var wordListButtons = A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
+	var padding = _elm_lang$html$Html_Attributes$style(
 		{
 			ctor: '::',
-			_0: _user$project$View$wordListButton(_user$project$Types$EasyWords),
-			_1: {
-				ctor: '::',
-				_0: _user$project$View$wordListButton(_user$project$Types$NormalWords),
-				_1: {
-					ctor: '::',
-					_0: _user$project$View$wordListButton(_user$project$Types$OriginalWords),
-					_1: {ctor: '[]'}
-				}
-			}
+			_0: {ctor: '_Tuple2', _0: 'padding', _1: '5px'},
+			_1: {ctor: '[]'}
 		});
 	var menuButtons = A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
+		_elm_lang$html$Html$span,
+		{
+			ctor: '::',
+			_0: padding,
+			_1: {ctor: '[]'}
+		},
 		{
 			ctor: '::',
 			_0: _user$project$View$resetButton,
@@ -17175,19 +17502,77 @@ var _user$project$View$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: _user$project$View$hintsButton(model.hints),
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$br,
+							{ctor: '[]'},
+							{ctor: '[]'}),
+						_1: {
+							ctor: '::',
+							_0: _user$project$View$wordListButton(_user$project$Types$EasyWords),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$br,
+									{ctor: '[]'},
+									{ctor: '[]'}),
+								_1: {
+									ctor: '::',
+									_0: _user$project$View$wordListButton(_user$project$Types$NormalWords),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$br,
+											{ctor: '[]'},
+											{ctor: '[]'}),
+										_1: {
+											ctor: '::',
+											_0: _user$project$View$wordListButton(_user$project$Types$OriginalWords),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
+			}
+		});
+	var clueButtons = A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: padding,
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _user$project$View$clueInput(model),
+			_1: {
+				ctor: '::',
+				_0: _user$project$View$clueDisplay(model),
+				_1: {ctor: '[]'}
 			}
 		});
 	var buttonArea = A2(
 		_elm_lang$html$Html$div,
-		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'display', _1: 'flex'},
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		},
 		{
 			ctor: '::',
 			_0: menuButtons,
 			_1: {
 				ctor: '::',
-				_0: wordListButtons,
+				_0: clueButtons,
 				_1: {ctor: '[]'}
 			}
 		});
