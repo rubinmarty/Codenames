@@ -4,13 +4,15 @@ import Types exposing (..)
 import Sockets
 import Vector exposing (..)
 import Grid exposing (..)
-import RandomList exposing (..)
 import WordLists exposing (..)
 import Random exposing (Generator, pair)
+import Random.List
+import Random.Extra
 import Maybe exposing (withDefault, andThen)
 import Navigation
 import Task
 import Dom.Scroll
+import List.Extra
 
 
 -- MODEL
@@ -237,14 +239,14 @@ randomInitialState wl =
 
         randomCards : Team -> Generator (List CardType)
         randomCards t =
-            shuffle <| cardTypeList t
+            Random.List.shuffle <| cardTypeList t
 
         randomWords : Generator (List String)
         randomWords =
-            Random.map (List.take 25) <| shuffle <| getWordList wl
+            Random.map (List.take 25) <| Random.List.shuffle <| getWordList wl
     in
         randomTeam
-            |> Random.andThen (\team -> pair (constant team) (randomCards team))
+            |> Random.andThen (\team -> pair (Random.Extra.constant team) (randomCards team))
             |> Random.map2 (\ls ( t, lct ) -> (,,) t lct ls) randomWords
             |> Random.generate InitState
 
@@ -261,7 +263,7 @@ setCardTypes cardTypes model =
             (getX v) + (5 * getY v)
 
         setOwner v card =
-            { card | cardType = withDefault Blank <| flip get cardTypes <| index v }
+            { card | cardType = withDefault Blank <| flip List.Extra.getAt cardTypes <| index v }
     in
         { model | board = Grid.indexedMap setOwner model.board }
 
@@ -273,7 +275,7 @@ setCardWords cardWords model =
             (getX v) + (5 * getY v)
 
         setWord v card =
-            { card | word = withDefault "ERROR" <| flip get cardWords <| index v }
+            { card | word = withDefault "ERROR" <| flip List.Extra.getAt cardWords <| index v }
     in
         { model | board = Grid.indexedMap setWord model.board }
 
