@@ -1,3 +1,9 @@
-import App exposing (app)
+module Codenames exposing (..)
 
-main = app
+import App exposing (app)
+import Types exposing (Model, Msg)
+
+
+main : Program Never Model Msg
+main =
+    app

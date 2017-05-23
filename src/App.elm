@@ -2,8 +2,8 @@ module App exposing (app)
 
 import Navigation
 import State exposing (init, update, subscriptions)
-import View exposing (view)
 import Types exposing (Msg(UrlChange))
+import View exposing (view)
 
 
 app =

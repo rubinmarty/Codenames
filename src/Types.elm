@@ -1,9 +1,8 @@
 module Types exposing (..)
 
 import Grid exposing (Grid)
-import Vector exposing (Vector)
 import Navigation
-
+import Vector exposing (Vector)
 
 
 type alias Model =
@@ -17,6 +16,8 @@ type alias Model =
     , num : Int
     , serverAddress : String
     }
+
+
 newModel : Model
 newModel =
     { board = blankBoard
@@ -31,17 +32,14 @@ newModel =
     }
 
 
-type Msg =
-
-    NoOp
-
-    --triggered messages
+type Msg
+    = NoOp
+      --triggered messages
     | Send (List Msg)
     | Receive (List Msg)
     | Reset
-    | InitState (Team, List CardType, List String)
-
-    --sendable messages (should really be their own type)
+    | InitState ( Team, List CardType, List String )
+      --sendable messages (should really be their own type)
     | SetClicked Vector
     | SetTurn Team
     | SetCardWords (List String)
@@ -49,23 +47,23 @@ type Msg =
     | PassTurn
     | LogPush LogEntry
     | NewGame
-
-    --local messages
+      --local messages
     | SetWordList WordList
     | SetHints Bool
     | SetClueBar String
     | SetClueNumber String
     | MouseOverTile Bool Vector
-
-    --unused messages
+      --unused messages
     | UrlChange Navigation.Location
 
 
+type alias Board =
+    Grid Card
 
-type alias Board = Grid Card
+
 blankBoard : Board
-blankBoard = Grid.grid 5 5 dummyCard
-
+blankBoard =
+    Grid.grid 5 5 dummyCard
 
 
 type alias Card =
@@ -74,6 +72,8 @@ type alias Card =
     , revealed : Bool
     , mouseOver : Bool
     }
+
+
 dummyCard : Card
 dummyCard =
     { word = ""
@@ -83,19 +83,36 @@ dummyCard =
     }
 
 
-type Team = Blue | Red
+type Team
+    = Blue
+    | Red
+
+
 otherTeam : Team -> Team
 otherTeam team =
     case team of
-        Blue -> Red
-        Red -> Blue
+        Blue ->
+            Red
+
+        Red ->
+            Blue
 
 
-type CardType = Blank | KillWord | Team Team
+type CardType
+    = Blank
+    | KillWord
+    | Team Team
 
 
-type WordList = EasyWords | NormalWords | OriginalWords
+type WordList
+    = EasyWords
+    | NormalWords
+    | OriginalWords
 
 
-type alias LogEntry = (Team, String, Int, List String)
-type alias Log = List LogEntry
+type alias LogEntry =
+    ( Team, String, Int, List String )
+
+
+type alias Log =
+    List LogEntry
