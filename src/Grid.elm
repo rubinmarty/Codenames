@@ -27,8 +27,8 @@ width : Grid a -> Int
 width grid =
     grid
         |> Array.get 0
-        |> Maybe.withDefault Array.empty
-        |> Array.length
+        |> Maybe.map Array.length
+        |> Maybe.withDefault 0
 
 
 dimensions : Grid a -> Vector
