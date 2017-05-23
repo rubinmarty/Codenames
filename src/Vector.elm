@@ -1,7 +1,5 @@
 module Vector exposing (..)
 
-import Tuple exposing (first, second)
-
 
 type alias Vector =
     ( Int, Int )
@@ -14,12 +12,12 @@ zero =
 
 getX : Vector -> Int
 getX =
-    first
+    Tuple.first
 
 
 getY : Vector -> Int
 getY =
-    second
+    Tuple.second
 
 
 add : Vector -> Vector -> Vector
