@@ -11,6 +11,18 @@ type alias Grid a =
     Array (Array a)
 
 
+type alias GridFold a b c =
+    Combine a b -> Combine b c -> b -> c -> Grid a -> c
+
+
+type alias ArrayFold a b =
+    Combine a b -> b -> Array a -> b
+
+
+type alias Combine a b =
+    a -> b -> b
+
+
 grid : Int -> Int -> a -> Grid a
 grid x y v =
     v
@@ -88,25 +100,35 @@ countIf pred grid =
         grid
 
 
-foldLeftTop : (a -> b -> b) -> (b -> c -> c) -> b -> c -> Grid a -> c
-foldLeftTop combine combineRows base baseRow grid =
+genericFold : ArrayFold a b -> ArrayFold (Array a) c -> GridFold a b c
+genericFold foldh foldv combine combineRows base baseRow grid =
     let
-        foldRow row =
-            Array.foldl combine base row
+        foldRow : Array a -> b
+        foldRow =
+            foldh combine base
 
+        foldAndCombineRow : Combine (Array a) c
         foldAndCombineRow row acc =
             combineRows (foldRow row) acc
     in
-        Array.foldl foldAndCombineRow baseRow grid
+        foldv foldAndCombineRow baseRow grid
 
 
-foldRightBottom : (a -> b -> b) -> (b -> c -> c) -> b -> c -> Grid a -> c
-foldRightBottom combine combineRows base baseRow grid =
-    let
-        foldRow row =
-            Array.foldr combine base row
+foldLeftTop : GridFold a b c
+foldLeftTop =
+    genericFold Array.foldl Array.foldl
 
-        foldAndCombineRow row acc =
-            combineRows (foldRow row) acc
-    in
-        Array.foldr foldAndCombineRow baseRow grid
+
+foldLeftBottom : GridFold a b c
+foldLeftBottom =
+    genericFold Array.foldl Array.foldr
+
+
+foldRightBottom : GridFold a b c
+foldRightBottom =
+    genericFold Array.foldr Array.foldr
+
+
+foldRightTop : GridFold a b c
+foldRightTop =
+    genericFold Array.foldr Array.foldl
