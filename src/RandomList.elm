@@ -2,15 +2,18 @@ module RandomList exposing (..)
 
 import Random exposing (..)
 
+
 constant : a -> Generator a
 constant value =
     Random.map (\_ -> value) Random.bool
+
 
 get : Int -> List a -> Maybe a
 get index list =
     list
         |> List.drop index
         |> List.head
+
 
 choose : List a -> Generator ( Maybe a, List a )
 choose list =
@@ -35,6 +38,7 @@ choose list =
                     ( get index list, List.append (front index) (back index) )
                 )
                 gen
+
 
 shuffle : List a -> Generator (List a)
 shuffle list =
