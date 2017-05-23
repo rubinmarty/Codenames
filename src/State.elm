@@ -10,6 +10,8 @@ import WordLists exposing (..)
 import Random exposing (Generator, pair)
 import Maybe exposing (withDefault, andThen)
 import Navigation
+import Task
+import Dom.Scroll
 
 -- MODEL
 
@@ -17,8 +19,6 @@ import Navigation
 init : Navigation.Location -> (Model, Cmd Msg)
 init location =
     { newModel | serverAddress = "wss://" ++ location.host } ! []
-
-
 
 -- UPDATE
 
@@ -29,6 +29,7 @@ update msg model =
         Sockets.send (model.serverAddress ++ "/submit") msgs
     in
     case msg of
+        NoOp -> model ! []
         Send msgs ->
             model ! [send msgs]
         Receive msgs ->
@@ -48,7 +49,7 @@ update msg model =
                 model ! [send msgs]
 
         SetClicked v ->
-            click v model ! []
+            click v model
         SetCardTypes ctl ->
             setCardTypes ctl model ! []
         SetCardWords wl ->
@@ -58,7 +59,7 @@ update msg model =
         PassTurn ->
             setTurn (otherTeam model.turn) model ! []
         LogPush entry ->
-            {model | log = entry::model.log} ! []
+            {model | log = entry::model.log} ! [scrollDown]
         NewGame ->
             model
             |> setUnrevealed
@@ -90,16 +91,21 @@ update msg model =
           model ! []
 
 
-click : Vector -> Model -> Model
+click : Vector -> Model -> (Model, Cmd Msg)
 click v model =
     lookupV v model.board
     |> andThen (\card -> if model.isGameOver then Nothing else Just card)
     |> andThen (\card -> if card.revealed then Nothing else Just card)
-    |> Maybe.map (\card -> logGuess card.word model
+    |> Maybe.map (\card -> model
         |> maybePassTurn card.cardType
         |> reveal v
-        |> endGame)
-    |> withDefault model
+        |> endGame
+        |> logGuess card.word)
+    |> withDefault (model ! [])
+
+scrollDown : Cmd Msg
+scrollDown =
+    Task.attempt (always NoOp) <| Dom.Scroll.toBottom "chat"
 
 reveal : Vector -> Model -> Model
 reveal v model =
@@ -122,7 +128,7 @@ passTurn : Model -> Model
 passTurn model =
     {model | turn = otherTeam model.turn}
 
-logGuess : String -> Model -> Model
+logGuess : String -> Model -> (Model, Cmd Msg)
 logGuess str model =
     let
         update str (a,b,c,words) =
@@ -130,7 +136,7 @@ logGuess str model =
     in
         model.log
         |> List.indexedMap (\i entry -> if i==0 then update str entry else entry)
-        |> (\lg -> {model | log = lg})
+        |> (\lg -> {model | log = lg} ! [scrollDown])
 
 
 

@@ -8,6 +8,8 @@ import State exposing (cardsRemaining)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Random
+import Json.Encode
 
 ----------------------
 --------COLORS--------
@@ -69,15 +71,15 @@ cardStyle card isGameOver =
         , ("color", fontColor)
         , ("background-color", displayColor )
         , ("height", "90px")
+        , ("line-height", "90px")
         , ("width", "180px")
         , ("display", "inline-block")
         , ("position", "relative")
         , ("margin", "1px")
         , ("border-radius", "20px")
         , ("text-align", "center")
-        , ("line-height", "270%")
-        , ("font-size", "30px")
-        , ("font-family", "calibri, helvetica, arial, sans-serif")
+        , ("font-family", "helvetica, sans-serif")
+        , ("font-size", "26px")
         , ("user-select", "none")
         , ("overflow", "hidden")
         ]
@@ -221,14 +223,15 @@ clueInput model =
 clueDisplay : Model -> Html Msg
 clueDisplay model =
     let
-        render (team, clue, num, guesses) =
-            div
-                [style [("color", teamColor team)]]
-                [ div [] [text <| clue ++ " : " ++ toString num]
-                , div [] [text <| (++) "> " <| String.join ", " <| List.reverse guesses]
+        entryRender (team, clue, num, guesses) =
+            div []
+                [ div   [style [("color", teamColor team)]]
+                        [text <| clue ++ " : " ++ toString num]
+                , div   []
+                        [text <| (++) "> " <| String.join ", " <| List.reverse guesses]
                 ]
     in
-        div [style clueDisplayStyle] (List.map render model.log)
+        div [style clueDisplayStyle, id "chat"] (List.reverse <| List.map entryRender model.log)
 
 view : Model -> Html Msg
 view model =

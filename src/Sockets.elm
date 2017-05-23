@@ -22,7 +22,7 @@ send address msgs =
 
 -- SERIALIZATION
 
-debug = True
+debug = False
 
 print : String -> a -> a
 print str =

@@ -33,8 +33,10 @@ newModel =
 
 type Msg =
 
+    NoOp
+
     --triggered messages
-      Send (List Msg)
+    | Send (List Msg)
     | Receive (List Msg)
     | Reset
     | InitState (Team, List CardType, List String)
