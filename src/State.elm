@@ -84,11 +84,17 @@ update msg model =
                 { model | log = entry :: model.log } ! [ scrollDown ]
 
             NewGame ->
-                model
-                    |> setUnrevealed
-                    |> (\m -> { m | hints = False })
-                    |> (\m -> { m | isGameOver = False })
-                    |> (\m -> { m | log = [] } ! [])
+                let
+                    unrevealedBoard =
+                        setUnrevealed model.board
+                in
+                    { model
+                        | board = unrevealedBoard
+                        , hints = False
+                        , isGameOver = False
+                        , log = []
+                    }
+                        ! []
 
             SetWordList wl ->
                 { model | wordList = wl } ! []
@@ -121,30 +127,24 @@ update msg model =
 
 click : Vector -> Model -> ( Model, Cmd Msg )
 click v model =
-    Grid.lookupV v model.board
-        |> andThen
-            (\card ->
-                if model.isGameOver then
-                    Nothing
-                else
-                    Just card
-            )
-        |> andThen
-            (\card ->
-                if card.revealed then
-                    Nothing
-                else
-                    Just card
-            )
-        |> Maybe.map
-            (\card ->
-                model
-                    |> maybePassTurn card.cardType
-                    |> reveal v
-                    |> endGame
-                    |> logGuess card.word
-            )
-        |> withDefault (model ! [])
+    let
+        isValidClick card =
+            if model.isGameOver || card.revealed then
+                Nothing
+            else
+                Just card
+    in
+        Grid.lookupV v model.board
+            |> andThen isValidClick
+            |> Maybe.map
+                (\card ->
+                    model
+                        |> maybePassTurn card.cardType
+                        |> reveal v
+                        |> endGame
+                        |> logGuess card.word
+                )
+            |> withDefault (model ! [])
 
 
 scrollDown : Cmd Msg
@@ -162,8 +162,8 @@ reveal v model =
 
 
 maybePassTurn : CardType -> Model -> Model
-maybePassTurn ct model =
-    case ct of
+maybePassTurn cardType model =
+    case cardType of
         Blank ->
             passTurn model
 
@@ -183,36 +183,29 @@ passTurn model =
 
 
 logGuess : String -> Model -> ( Model, Cmd Msg )
-logGuess str model =
+logGuess guess model =
     let
-        update str ( a, b, c, words ) =
-            ( a, b, c, str :: words )
+        addGuess ( a, b, c, words ) =
+            ( a, b, c, guess :: words )
+
+        updatedLog =
+            List.Extra.updateAt 0 addGuess model.log
+                |> Maybe.withDefault []
     in
-        model.log
-            |> List.indexedMap
-                (\i entry ->
-                    if i == 0 then
-                        update str entry
-                    else
-                        entry
-                )
-            |> (\lg -> { model | log = lg } ! [ scrollDown ])
+        { model | log = updatedLog } ! [ scrollDown ]
 
 
 setMouseOver : Bool -> Vector -> Board -> Board
-setMouseOver b v board =
+setMouseOver isOver v board =
     let
-        withMouseOver b card =
-            { card | mouseOver = b }
+        withMouseOver card =
+            { card | mouseOver = isOver }
     in
-        Grid.lookupV v board
-            |> Maybe.map (\card -> withMouseOver b card)
-            |> Maybe.map (\card -> Grid.setV v card board)
-            |> withDefault board
+        Grid.update v withMouseOver board
 
 
 randomInitialState : WordList -> Cmd Msg
-randomInitialState wl =
+randomInitialState wordListType =
     let
         cardTypeList : Team -> List CardType
         cardTypeList activeTeam =
@@ -221,9 +214,9 @@ randomInitialState wl =
                 ++ List.repeat 7 Blank
                 ++ List.singleton KillWord
 
-        getWordList : WordList -> List String
-        getWordList wl =
-            case wl of
+        wordList : List String
+        wordList =
+            case wordListType of
                 EasyWords ->
                     WordLists.easy_words
 
@@ -235,26 +228,26 @@ randomInitialState wl =
 
         randomTeam : Generator Team
         randomTeam =
-            Random.bool
-                |> Random.map
-                    (\b ->
-                        if b then
-                            Blue
-                        else
-                            Red
-                    )
+            Random.Extra.choice Blue Red
 
         randomCards : Team -> Generator (List CardType)
-        randomCards t =
-            Random.List.shuffle <| cardTypeList t
+        randomCards =
+            Random.List.shuffle << cardTypeList
 
         randomWords : Generator (List String)
         randomWords =
-            Random.map (List.take 25) <| Random.List.shuffle <| getWordList wl
+            Random.map (List.take 25) <| Random.List.shuffle wordList
     in
         randomTeam
-            |> Random.andThen (\team -> pair (Random.Extra.constant team) (randomCards team))
-            |> Random.map2 (\ls ( t, lct ) -> (,,) t lct ls) randomWords
+            |> Random.andThen
+                (\team ->
+                    Random.pair (Random.Extra.constant team) (randomCards team)
+                )
+            |> Random.map2
+                (\word ( team, cardType ) ->
+                    (,,) team cardType word
+                )
+                randomWords
             |> Random.generate InitState
 
 
@@ -266,37 +259,32 @@ setTurn team model =
 setCardTypes : List CardType -> Model -> Model
 setCardTypes cardTypes model =
     let
-        index v =
-            (getX v) + (5 * getY v)
+        getCardType v =
+            List.Extra.getAt (getX v + 5 * getY v) cardTypes
+                |> withDefault Blank
 
-        setOwner v card =
-            { card | cardType = withDefault Blank <| flip List.Extra.getAt cardTypes <| index v }
+        setCardType v card =
+            { card | cardType = getCardType v }
     in
-        { model | board = Grid.indexedMap setOwner model.board }
+        { model | board = Grid.indexedMap setCardType model.board }
 
 
 setCardWords : List String -> Model -> Model
 setCardWords cardWords model =
     let
-        index v =
-            (getX v) + (5 * getY v)
+        getWord v =
+            List.Extra.getAt (getX v + 5 * getY v) cardWords
+                |> withDefault "ERROR"
 
         setWord v card =
-            { card | word = withDefault "ERROR" <| flip List.Extra.getAt cardWords <| index v }
+            { card | word = getWord v }
     in
         { model | board = Grid.indexedMap setWord model.board }
 
 
-setUnrevealed : Model -> Model
-setUnrevealed model =
-    let
-        board =
-            model.board
-
-        newBoard =
-            Grid.map (\card -> { card | revealed = False }) board
-    in
-        { model | board = newBoard }
+setUnrevealed : Board -> Board
+setUnrevealed board =
+    Grid.map (\card -> { card | revealed = False }) board
 
 
 cardsRemaining : Board -> CardType -> Int
