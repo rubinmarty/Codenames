@@ -23,6 +23,7 @@ send address msgs =
 -- SERIALIZATION
 
 
+debug : Bool
 debug =
     False
 
@@ -131,8 +132,7 @@ msgsD =
 
 logEntryD : Decoder LogEntry
 logEntryD =
-    JD.map4
-        (,,,)
+    JD.map4 (,,,)
         (JD.field "team" teamD)
         (JD.field "clue" JD.string)
         (JD.field "num" JD.int)

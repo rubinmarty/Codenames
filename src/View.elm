@@ -41,15 +41,15 @@ teamBackgroundColor : Team -> String
 teamBackgroundColor team =
     case team of
         Blue ->
+            -- Light Blue
             "#ACC"
 
-        --lightblue
         Red ->
+            -- Light Red
             "#E88"
 
 
 
---lightred
 ----------------------
 --------STYLES--------
 ----------------------
