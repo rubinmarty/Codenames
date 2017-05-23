@@ -1,39 +1,46 @@
-module Grid exposing (Grid, grid, lookup, lookupV, set, setV, allVectors, render, map, indexedMap, mapAtV)
+module Grid exposing (..)
 
+import Array exposing (Array)
+import Array.Extra
 import Basics exposing (uncurry)
-import Html
-import Html.Attributes
-import List exposing (drop, head, take, repeat, concatMap, repeat, range)
-import Maybe exposing (Maybe, andThen, withDefault)
-import Vector exposing (..)
+import Maybe exposing (Maybe)
+import Vector exposing (Vector)
 
 
 type alias Grid a =
-    List (List a)
+    Array (Array a)
 
 
 grid : Int -> Int -> a -> Grid a
 grid x y v =
-    repeat y <| repeat x v
+    v
+        |> Array.repeat x
+        |> Array.repeat y
 
 
 height : Grid a -> Int
 height grid =
-    List.length grid
+    Array.length grid
 
 
-length : Grid a -> Int
-length grid =
-    List.length <| withDefault [] <| head grid
+width : Grid a -> Int
+width grid =
+    grid
+        |> Array.get 0
+        |> Maybe.withDefault Array.empty
+        |> Array.length
+
+
+dimensions : Grid a -> Vector
+dimensions grid =
+    ( width grid, height grid )
 
 
 lookup : Int -> Int -> Grid a -> Maybe a
 lookup x y grid =
     grid
-        |> drop y
-        |> head
-        |> andThen (Just << drop x)
-        |> andThen head
+        |> Array.get y
+        |> Maybe.andThen (Array.get x)
 
 
 lookupV : Vector -> Grid a -> Maybe a
@@ -43,21 +50,7 @@ lookupV =
 
 set : Int -> Int -> a -> Grid a -> Grid a
 set x y val grid =
-    let
-        set_ x_ val_ m_list_ =
-            case m_list_ of
-                Nothing ->
-                    []
-
-                Just list_ ->
-                    [ take x_ list_
-                        ++ [ val_ ]
-                        ++ drop (x_ + 1) list_
-                    ]
-    in
-        take y grid
-            ++ (set_ x val <| head <| drop y grid)
-            ++ drop (y + 1) grid
+    Array.Extra.update y (Array.set x val) grid
 
 
 setV : Vector -> a -> Grid a -> Grid a
@@ -65,47 +58,55 @@ setV =
     uncurry set
 
 
-allVectors : Grid a -> List Vector
-allVectors grid =
-    let
-        x =
-            length grid
-
-        y =
-            height grid
-    in
-        range 0 x
-            |> List.concatMap
-                (\x ->
-                    range 0 y
-                        |> List.map (\y -> ( x, y ))
-                )
+update : Vector -> (a -> a) -> Grid a -> Grid a
+update ( x, y ) f grid =
+    Array.Extra.update y (Array.Extra.update x f) grid
 
 
 map : (a -> b) -> Grid a -> Grid b
 map f grid =
-    List.map (List.map f) grid
-
-
-mapAtV : (a -> a) -> Vector -> Grid a -> Grid a
-mapAtV f v grid =
-    indexedMap
-        (\v2 elt ->
-            if v == v2 then
-                f elt
-            else
-                elt
-        )
-        grid
+    Array.map (Array.map f) grid
 
 
 indexedMap : (Vector -> a -> b) -> Grid a -> Grid b
 indexedMap f grid =
-    List.indexedMap (\y -> List.indexedMap ((flip <| curry f) y)) grid
+    Array.indexedMap (\y -> Array.indexedMap ((flip <| curry f) y)) grid
 
 
-render : (Vector -> a -> Html.Html b) -> Grid a -> Html.Html b
-render f grid =
-    indexedMap f grid
-        |> List.map (Html.div [])
-        |> Html.div [ Html.Attributes.style [ ( "font-size", "0px" ) ] ]
+countIf : (a -> Bool) -> Grid a -> Int
+countIf pred grid =
+    foldLeftTop
+        (\x acc ->
+            if pred x then
+                1 + acc
+            else
+                acc
+        )
+        (\x acc -> x + acc)
+        0
+        0
+        grid
+
+
+foldLeftTop : (a -> b -> b) -> (b -> c -> c) -> b -> c -> Grid a -> c
+foldLeftTop combine combineRows base baseRow grid =
+    let
+        foldRow row =
+            Array.foldl combine base row
+
+        foldAndCombineRow row acc =
+            combineRows (foldRow row) acc
+    in
+        Array.foldl foldAndCombineRow baseRow grid
+
+
+foldRightBottom : (a -> b -> b) -> (b -> c -> c) -> b -> c -> Grid a -> c
+foldRightBottom combine combineRows base baseRow grid =
+    let
+        foldRow row =
+            Array.foldr combine base row
+
+        foldAndCombineRow row acc =
+            combineRows (foldRow row) acc
+    in
+        Array.foldr foldAndCombineRow baseRow grid

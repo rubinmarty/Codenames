@@ -1,11 +1,9 @@
 module View exposing (view)
 
-import Grid exposing (render)
+import Grid exposing (Grid)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Encode
-import Random
 import State exposing (cardsRemaining)
 import Types exposing (..)
 import Vector exposing (Vector)
@@ -308,6 +306,13 @@ clueDisplay model =
         div [ style clueDisplayStyle, id "chat" ] (List.reverse <| List.map entryRender model.log)
 
 
+renderGrid : (Vector -> a -> Html b) -> Grid a -> Html b
+renderGrid f grid =
+    Grid.indexedMap f grid
+        |> Grid.foldRightBottom (::) (\x acc -> (div [] x) :: acc) [] []
+        |> div [ style [ ( "font-size", "0px" ) ] ]
+
+
 view : Model -> Html Msg
 view model =
     let
@@ -323,7 +328,7 @@ view model =
             div [ style [ ( "display", "flex" ), ( "height", "140px" ) ] ] [ menuButtons, clueButtons ]
 
         cardArea =
-            Grid.render (\a b -> cardNode a b model.hints model.isGameOver) model.board
+            renderGrid (\a b -> cardNode a b model.hints model.isGameOver) model.board
 
         infoArea =
             div [] [ remainingBox model Blue, remainingBox model Red ]

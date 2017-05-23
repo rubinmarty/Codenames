@@ -1,7 +1,7 @@
 module State exposing (..)
 
 import Dom.Scroll
-import Grid exposing (..)
+import Grid
 import List.Extra
 import Maybe exposing (withDefault, andThen)
 import Navigation
@@ -114,7 +114,7 @@ update msg model =
 
 click : Vector -> Model -> ( Model, Cmd Msg )
 click v model =
-    lookupV v model.board
+    Grid.lookupV v model.board
         |> andThen
             (\card ->
                 if model.isGameOver then
@@ -151,7 +151,7 @@ reveal v model =
         setRevealed card =
             { card | revealed = True }
     in
-        { model | board = Grid.mapAtV setRevealed v model.board }
+        { model | board = Grid.update v setRevealed model.board }
 
 
 maybePassTurn : CardType -> Model -> Model
@@ -198,9 +198,9 @@ setMouseOver b v board =
         withMouseOver b card =
             { card | mouseOver = b }
     in
-        lookupV v board
+        Grid.lookupV v board
             |> Maybe.map (\card -> withMouseOver b card)
-            |> Maybe.map (\card -> setV v card board)
+            |> Maybe.map (\card -> Grid.setV v card board)
             |> withDefault board
 
 
@@ -297,15 +297,8 @@ cardsRemaining board cardType =
     let
         doesCount card =
             card.cardType == cardType && card.revealed == False
-
-        doesCount_ v =
-            lookupV v board
-                |> Maybe.map doesCount
-                |> withDefault False
     in
-        Grid.allVectors board
-            |> List.filter doesCount_
-            |> List.length
+        Grid.countIf doesCount board
 
 
 endGame : Model -> Model
