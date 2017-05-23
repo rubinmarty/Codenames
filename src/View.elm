@@ -1,11 +1,11 @@
 module View exposing (view)
 
 import Grid exposing (Grid)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
+import Html exposing (Html, text, span, div, button, input, label, br)
+import Html.Attributes exposing (style, type_, name, checked, title, placeholder, value, id)
+import Html.Events exposing (onClick, onMouseEnter, onMouseLeave, onInput)
 import State exposing (cardsRemaining)
-import Types exposing (..)
+import Types exposing (Model, Msg(..), CardType(..), Team(..), WordList(..), Card)
 import Vector exposing (Vector)
 
 

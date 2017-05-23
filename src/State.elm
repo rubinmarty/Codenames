@@ -5,14 +5,14 @@ import Grid
 import List.Extra
 import Maybe exposing (withDefault, andThen)
 import Navigation
-import Random exposing (Generator, pair)
+import Random exposing (Generator)
 import Random.Extra
 import Random.List
 import Sockets
 import Task
-import Types exposing (..)
-import Vector exposing (..)
-import WordLists exposing (..)
+import Types exposing (Model, Msg(..), CardType(..), WordList(..), Team(..), Board, newModel, otherTeam)
+import Vector exposing (Vector, getX, getY)
+import WordLists
 
 
 -- MODEL

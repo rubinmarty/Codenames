@@ -4,7 +4,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE
 import Platform.Sub as Sub
 import Result
-import Types exposing (..)
+import Types exposing (Msg(..), LogEntry, CardType(..), Team(..))
 import Vector exposing (Vector, getX, getY)
 import WebSocket
 
