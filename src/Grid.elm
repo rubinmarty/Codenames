@@ -2,7 +2,6 @@ module Grid exposing (..)
 
 import Array exposing (Array)
 import Array.Extra
-import Basics exposing (uncurry)
 import Maybe exposing (Maybe)
 import Vector exposing (Vector)
 
@@ -86,18 +85,15 @@ indexedMap f grid =
 
 
 countIf : (a -> Bool) -> Grid a -> Int
-countIf pred grid =
-    foldLeftTop
-        (\x acc ->
-            if pred x then
+countIf predicate grid =
+    let
+        incrIf x acc =
+            if predicate x then
                 1 + acc
             else
                 acc
-        )
-        (\x acc -> x + acc)
-        0
-        0
-        grid
+    in
+        foldLeftTop incrIf (+) 0 0 grid
 
 
 genericFold : ArrayFold a b -> ArrayFold (Array a) c -> GridFold a b c
@@ -132,3 +128,15 @@ foldRightBottom =
 foldRightTop : GridFold a b c
 foldRightTop =
     genericFold Array.foldr Array.foldl
+
+
+filter : (a -> Bool) -> Grid a -> Grid (Maybe a)
+filter predicate grid =
+    map
+        (\x ->
+            if predicate x then
+                Just x
+            else
+                Nothing
+        )
+        grid
