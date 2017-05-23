@@ -1,11 +1,11 @@
 module Grid exposing (Grid, grid, lookup, lookupV, set, setV, allVectors, render, map, indexedMap, mapAtV)
 
-import Vector exposing (..)
-import List exposing (drop, head, take, repeat, concatMap, repeat, range)
-import Maybe exposing (Maybe, andThen, withDefault)
 import Basics exposing (uncurry)
 import Html
 import Html.Attributes
+import List exposing (drop, head, take, repeat, concatMap, repeat, range)
+import Maybe exposing (Maybe, andThen, withDefault)
+import Vector exposing (..)
 
 
 type alias Grid a =

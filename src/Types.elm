@@ -1,8 +1,8 @@
 module Types exposing (..)
 
 import Grid exposing (Grid)
-import Vector exposing (Vector)
 import Navigation
+import Vector exposing (Vector)
 
 
 type alias Model =

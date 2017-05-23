@@ -1,14 +1,14 @@
 module View exposing (view)
 
-import Types exposing (..)
-import Vector exposing (Vector)
 import Grid exposing (render)
-import State exposing (cardsRemaining)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Random
 import Json.Encode
+import Random
+import State exposing (cardsRemaining)
+import Types exposing (..)
+import Vector exposing (Vector)
 
 
 ----------------------

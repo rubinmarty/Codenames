@@ -1,12 +1,12 @@
 module Sockets exposing (..)
 
+import Json.Decode as JD exposing (Decoder)
+import Json.Encode as JE
+import Platform.Sub as Sub
+import Result
 import Types exposing (..)
 import Vector exposing (Vector, getX, getY)
 import WebSocket
-import Result
-import Platform.Sub as Sub
-import Json.Encode as JE
-import Json.Decode as JD exposing (Decoder)
 
 
 subscriptions : String -> Sub Msg

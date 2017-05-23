@@ -1,18 +1,18 @@
 module State exposing (..)
 
-import Types exposing (..)
-import Sockets
-import Vector exposing (..)
+import Dom.Scroll
 import Grid exposing (..)
-import WordLists exposing (..)
-import Random exposing (Generator, pair)
-import Random.List
-import Random.Extra
+import List.Extra
 import Maybe exposing (withDefault, andThen)
 import Navigation
+import Random exposing (Generator, pair)
+import Random.Extra
+import Random.List
+import Sockets
 import Task
-import Dom.Scroll
-import List.Extra
+import Types exposing (..)
+import Vector exposing (..)
+import WordLists exposing (..)
 
 
 -- MODEL
