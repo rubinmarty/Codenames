@@ -20,7 +20,14 @@ import WordLists
 
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =
-    { newModel | serverAddress = "wss://" ++ location.host } ! []
+    let
+        socketProtocol =
+            if location.protocol == "https:" then
+                "wss://"
+            else
+                "ws://"
+    in
+        { newModel | serverAddress = socketProtocol ++ location.host } ! []
 
 
 
