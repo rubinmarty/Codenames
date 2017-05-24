@@ -24,7 +24,7 @@ newModel =
     , turn = Blue
     , hints = False
     , isGameOver = True
-    , wordList = NormalWords
+    , wordList = OriginalWords
     , log = []
     , clue = ""
     , num = 0
@@ -106,8 +106,8 @@ type CardType
 
 type WordList
     = EasyWords
-    | NormalWords
     | OriginalWords
+    | HardWords
 
 
 type alias LogEntry =

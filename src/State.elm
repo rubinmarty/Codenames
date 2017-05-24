@@ -28,6 +28,7 @@ init location =
                 "ws://"
     in
         { newModel | serverAddress = socketProtocol ++ location.host } ! []
+        --{ newModel | serverAddress = socketProtocol ++ "codenames-online.herokuapp.com/" } ! []
 
 
 
@@ -105,7 +106,7 @@ update msg model =
             SetClueBar str ->
                 let
                     str2 =
-                        String.trim <| String.toUpper <| str
+                        String.join "" <| String.words <| String.toUpper <| str
                 in
                     { model | clue = str2 } ! []
 
@@ -220,11 +221,11 @@ randomInitialState wordListType =
                 EasyWords ->
                     WordLists.easy_words
 
-                NormalWords ->
-                    WordLists.words
-
                 OriginalWords ->
-                    WordLists.original
+                    WordLists.original_words
+
+                HardWords ->
+                    WordLists.hard_words
 
         randomTeam : Generator Team
         randomTeam =

@@ -3,7 +3,7 @@ module View exposing (view)
 import Grid exposing (Grid)
 import Html exposing (Html, text, span, div, button, input, label, br)
 import Html.Attributes exposing (style, type_, name, checked, title, placeholder, value, id)
-import Html.Events exposing (onClick, onMouseEnter, onMouseLeave, onInput)
+import Html.Events exposing (onClick, onMouseEnter, onMouseLeave, onInput, onSubmit)
 import State exposing (cardsRemaining)
 import Types exposing (Model, Msg(..), CardType(..), Team(..), WordList(..), Card)
 import Vector exposing (Vector)
@@ -247,17 +247,17 @@ wordListButton wl =
                 EasyWords ->
                     ( "Easy Words", "499 short words" )
 
-                NormalWords ->
-                    ( "Normal Words", "499 medium words" )
-
                 OriginalWords ->
                     ( "Original Words", "400 original words" )
+
+                HardWords ->
+                    ( "Hard Words", "" )
 
         myClick =
             onClick <| SetWordList wl
 
         isChecked =
-            wl == NormalWords
+            wl == OriginalWords
 
         button_ =
             input [ type_ "radio", name "wordList", myClick, checked isChecked ] []
@@ -277,19 +277,23 @@ clueInput model =
         numBox =
             input [ type_ "number", onInput SetClueNumber, placeholder "0", value <| toString model.num ] []
 
+        clueButton =
+            button [] [ text "Submit" ]
+
         newEntry =
             ( model.turn, model.clue, model.num, [] )
 
         myEvent =
             if model.clue /= "" && model.num /= 0 then
-                [ onClick <| Send [ LogPush newEntry ] ]
+                onSubmit <| Send [ LogPush newEntry ]
             else
-                []
+                onSubmit NoOp
 
-        clueButton =
-            button myEvent [ text "Submit" ]
+        myStyle =
+            style [ ( "margin", "4px" ) ]
+
     in
-        span [ style [ ( "margin", "4px" ) ] ] [ clueBox, b, numBox, b, clueButton ]
+        Html.form [ myStyle, myEvent ] [ clueBox, b, numBox, b, clueButton ]
 
 
 clueDisplay : Model -> Html Msg
@@ -319,7 +323,7 @@ view model =
         menuButtons =
             span
                 [ style [ ( "padding", "5px" ) ] ]
-                [ resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton NormalWords, br [] [], wordListButton OriginalWords ]
+                [ resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton OriginalWords, br [] [], wordListButton HardWords ]
 
         clueButtons =
             div [ style clueSectionStyle ] [ clueInput model, clueDisplay model ]
