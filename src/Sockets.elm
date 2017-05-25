@@ -93,13 +93,11 @@ vectorE v =
     JE.object [ ( "x", JE.int <| getX v ), ( "y", JE.int <| getY v ) ]
 
 
-logEntryE : LogEntry -> JE.Value
-logEntryE ( team, clue, num, guesses ) =
+logEntryE : (String, Int) -> JE.Value
+logEntryE ( clue, num ) =
     JE.object
-        [ ( "team", enumE team )
-        , ( "clue", JE.string clue )
+        [ ( "clue", JE.string clue )
         , ( "num", JE.int num )
-        , ( "guesses", JE.list <| List.map JE.string guesses )
         ]
 
 
@@ -130,13 +128,11 @@ msgsD =
     JD.list msgD
 
 
-logEntryD : Decoder LogEntry
+logEntryD : Decoder (String, Int)
 logEntryD =
-    JD.map4 (,,,)
-        (JD.field "team" teamD)
+    JD.map2 (,)
         (JD.field "clue" JD.string)
         (JD.field "num" JD.int)
-        (JD.field "guesses" <| JD.list JD.string)
 
 
 cardTypeD : Decoder CardType

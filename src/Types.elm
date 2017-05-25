@@ -8,6 +8,7 @@ import Vector exposing (Vector)
 type alias Model =
     { board : Board
     , turn : Team
+    , givenClue : Bool
     , hints : Bool
     , isGameOver : Bool
     , wordList : WordList
@@ -22,6 +23,7 @@ newModel : Model
 newModel =
     { board = blankBoard
     , turn = Blue
+    , givenClue = False
     , hints = False
     , isGameOver = True
     , wordList = OriginalWords
@@ -45,7 +47,7 @@ type Msg
     | SetCardWords (List String)
     | SetCardTypes (List CardType)
     | PassTurn
-    | LogPush LogEntry
+    | LogPush (String, Int)
     | NewGame
       --local messages
     | SetWordList WordList

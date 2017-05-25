@@ -27,8 +27,8 @@ init location =
             else
                 "ws://"
     in
-        { newModel | serverAddress = socketProtocol ++ location.host } ! []
-        --{ newModel | serverAddress = socketProtocol ++ "codenames-online.herokuapp.com/" } ! []
+        --{ newModel | serverAddress = socketProtocol ++ location.host } ! []
+        { newModel | serverAddress = socketProtocol ++ "codenames-online.herokuapp.com/" } ! []
 
 
 
@@ -76,13 +76,25 @@ update msg model =
                 setCardWords wl model ! []
 
             SetTurn team ->
-                setTurn team model ! []
+                {model | turn = team} ! []
 
             PassTurn ->
-                setTurn (otherTeam model.turn) model ! []
+                passTurn model ! []
 
-            LogPush entry ->
-                { model | log = entry :: model.log } ! [ scrollDown ]
+            LogPush (str, int) ->
+                let
+                    newModel =
+                        passTurn model
+
+                    entry =
+                        (newModel.turn, str, int, [])
+
+                in 
+                    { newModel
+                        | log = entry :: model.log
+                        , givenClue = True
+                    }
+                        ! [ scrollDown ]
 
             NewGame ->
                 let
@@ -93,6 +105,7 @@ update msg model =
                         | board = unrevealedBoard
                         , hints = False
                         , isGameOver = False
+                        , givenClue = False
                         , log = []
                     }
                         ! []
@@ -130,7 +143,7 @@ click : Vector -> Model -> ( Model, Cmd Msg )
 click v model =
     let
         isValidClick card =
-            if model.isGameOver || card.revealed then
+            if model.isGameOver || not model.givenClue || card.revealed then
                 Nothing
             else
                 Just card
@@ -164,23 +177,43 @@ reveal v model =
 
 maybePassTurn : CardType -> Model -> Model
 maybePassTurn cardType model =
-    case cardType of
-        Blank ->
-            passTurn model
+    let
+        overLimit =
+            model.log
+                |> List.head
+                |> Maybe.map (\(_, _, num, li) -> num <= List.length li)
+                |> Maybe.withDefault False
 
-        KillWord ->
-            passTurn model
+        badCardType =
+            case cardType of
+                Blank ->
+                    True
 
-        Team t ->
-            if t /= model.turn then
-                passTurn model
-            else
-                model
+                KillWord ->
+                    True
+
+                Team t ->
+                    if t /= model.turn then
+                        True
+                    else
+                        False
+
+    in
+        if overLimit || badCardType then
+            passTurn model
+        else
+            model
 
 
 passTurn : Model -> Model
 passTurn model =
-    { model | turn = otherTeam model.turn }
+    if model.givenClue then
+        { model
+            | turn = otherTeam model.turn
+            , givenClue = False
+        }
+    else
+        model
 
 
 logGuess : String -> Model -> ( Model, Cmd Msg )
@@ -250,11 +283,6 @@ randomInitialState wordListType =
                 )
                 randomWords
             |> Random.generate InitState
-
-
-setTurn : Team -> Model -> Model
-setTurn team model =
-    { model | turn = team }
 
 
 setCardTypes : List CardType -> Model -> Model

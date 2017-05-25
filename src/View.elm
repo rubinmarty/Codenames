@@ -204,9 +204,14 @@ resetButton =
     button [ onClick Reset, style buttonStyle ] [ text "New Game" ]
 
 
-passButton : Html Msg
-passButton =
-    button [ onClick <| Send [ PassTurn ], style buttonStyle ] [ text "Pass Turn" ]
+passButton : Bool -> Html Msg
+passButton disabled =
+    button
+        [ onClick <| Send [ PassTurn ]
+        , style buttonStyle 
+        , Html.Attributes.disabled disabled
+        ]
+        [ text "Pass Turn" ]
 
 
 hintsButton : Bool -> Html Msg
@@ -275,17 +280,24 @@ clueInput model =
             input [ type_ "text", onInput SetClueBar, placeholder "Clue", value model.clue ] []
 
         numBox =
-            input [ type_ "number", onInput SetClueNumber, placeholder "0", value <| toString model.num ] []
+            input
+                [ type_ "number"
+                , onInput SetClueNumber
+                , placeholder "0"
+                , value <| toString model.num
+                , Html.Attributes.min "1"
+                , Html.Attributes.max "9" ]
+                []
 
         clueButton =
             button [] [ text "Submit" ]
 
-        newEntry =
-            ( model.turn, model.clue, model.num, [] )
+        clue =
+            ( model.clue, model.num )
 
         myEvent =
             if model.clue /= "" && model.num /= 0 then
-                onSubmit <| Send [ LogPush newEntry ]
+                onSubmit <| Send [ LogPush clue ]
             else
                 onSubmit NoOp
 
@@ -320,10 +332,13 @@ renderGrid f grid =
 view : Model -> Html Msg
 view model =
     let
+        pass =
+            passButton <| not model.givenClue
+
         menuButtons =
             span
                 [ style [ ( "padding", "5px" ) ] ]
-                [ resetButton, passButton, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton OriginalWords, br [] [], wordListButton HardWords ]
+                [ resetButton, pass, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton OriginalWords, br [] [], wordListButton HardWords ]
 
         clueButtons =
             div [ style clueSectionStyle ] [ clueInput model, clueDisplay model ]
