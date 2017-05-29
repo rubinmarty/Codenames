@@ -1,6 +1,7 @@
 module Styles
     exposing
-        ( buttonStyle
+        ( styles
+        , buttonStyle
         , cardStyle
         , sashStyle
         , remainingBoxStyle
