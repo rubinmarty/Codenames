@@ -1,8 +1,9 @@
 module View exposing (view)
 
+import Css
 import Grid exposing (Grid)
 import Html exposing (Html, text, span, div, button, input, label, br)
-import Html.Attributes exposing (style, type_, name, checked, title, placeholder, value, id)
+import Html.Attributes exposing (type_, name, checked, title, placeholder, value, id)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave, onInput, onSubmit)
 import State exposing (cardsRemaining)
 import Types exposing (Model, Msg(..), CardType(..), Team(..), WordList(..), Card)
@@ -14,39 +15,80 @@ import Vector exposing (Vector)
 ----------------------
 
 
-cardColor : CardType -> String
+type ColorName
+    = Black
+    | White
+    | Gray
+    | Beige
+    | RedColor
+    | BlueColor
+    | LightBlue
+    | LightRed
+    | BrightBlue
+
+
+toCssColor : ColorName -> Css.Color
+toCssColor name =
+    case name of
+        Black ->
+            Css.rgb 0 0 0
+
+        White ->
+            Css.rgb 255 255 255
+
+        Gray ->
+            Css.rgb 128 128 128
+
+        Beige ->
+            Css.rgb 240 232 196
+
+        RedColor ->
+            Css.rgb 255 0 0
+
+        BlueColor ->
+            Css.rgb 0 0 255
+
+        LightRed ->
+            Css.hex "E88"
+
+        LightBlue ->
+            Css.hex "ACC"
+
+        BrightBlue ->
+            Css.hex "5AF"
+
+
+cardColor : CardType -> ColorName
 cardColor o =
     case o of
         Blank ->
-            "Gray"
+            Gray
 
         KillWord ->
-            "Black"
+            Black
 
-        Team t ->
-            teamColor t
+        Team team ->
+            teamColor team
 
 
-teamColor : Team -> String
+teamColor : Team -> ColorName
 teamColor t =
     case t of
         Blue ->
-            "Blue"
+            BlueColor
 
         Red ->
-            "Red"
+            RedColor
 
 
-teamBackgroundColor : Team -> String
+teamBackgroundColor : Team -> ColorName
 teamBackgroundColor team =
     case team of
         Blue ->
-            -- Light Blue
-            "#ACC"
+            LightBlue
 
         Red ->
-            -- Light Red
-            "#E88"
+            LightRed
 
 
 
@@ -55,112 +97,135 @@ teamBackgroundColor team =
 ----------------------
 
 
-type alias Style =
-    List ( String, String )
+styles : List Css.Mixin -> Html.Attribute msg
+styles =
+    Css.asPairs >> Html.Attributes.style
 
 
-buttonStyle : Style
+type UserSelectValue
+    = None
+
+
+userSelect : UserSelectValue -> Css.Mixin
+userSelect value =
+    case value of
+        None ->
+            Css.property "user-select" "none"
+
+
+type ContentValue
+    = StringValue String
+
+
+content : ContentValue -> Css.Mixin
+content value =
+    case value of
+        StringValue str ->
+            Css.property "content" str
+
+
+buttonStyle : List Css.Mixin
 buttonStyle =
-    [ ( "font-size", "180%" )
-    , ( "margin", "4px" )
+    [ Css.fontSize (Css.pct 180)
+    , Css.margin (Css.px 4)
     ]
 
 
-cardStyle : Card -> Bool -> Style
+cardStyle : Card -> Bool -> List Css.Mixin
 cardStyle card isGameOver =
     let
         fontColor =
-            if (card.revealed && card.cardType == KillWord) then
-                "white"
-            else
-                "black"
+            toCssColor <|
+                if (card.revealed && card.cardType == KillWord) then
+                    White
+                else
+                    Black
 
         borderColor =
-            if card.mouseOver then
-                "#5AF"
-            else
-                "Black"
+            toCssColor <|
+                if card.mouseOver then
+                    BrightBlue
+                else
+                    Black
 
         displayColor =
-            if card.revealed then
-                cardColor card.cardType
-            else
-                "rgb(240,232,196)"
+            toCssColor <|
+                if card.revealed then
+                    cardColor card.cardType
+                else
+                    Beige
 
-        --Beige
         cursor =
             if isGameOver then
-                "default"
+                Css.default
             else
-                "pointer"
+                Css.pointer
     in
-        [ ( "cursor", cursor )
-        , ( "border", "5px solid " ++ borderColor )
-        , ( "color", fontColor )
-        , ( "background-color", displayColor )
-        , ( "height", "90px" )
-        , ( "line-height", "90px" )
-        , ( "width", "180px" )
-        , ( "display", "inline-block" )
-        , ( "position", "relative" )
-        , ( "margin", "1px" )
-        , ( "border-radius", "20px" )
-        , ( "text-align", "center" )
-        , ( "font-family", "helvetica, sans-serif" )
-        , ( "font-size", "26px" )
-        , ( "user-select", "none" )
-        , ( "overflow", "hidden" )
+        [ Css.cursor cursor
+        , Css.border3 (Css.px 5) Css.solid borderColor
+        , Css.color fontColor
+        , Css.backgroundColor displayColor
+        , Css.height (Css.px 90)
+        , Css.lineHeight (Css.px 90)
+        , Css.width (Css.px 180)
+        , Css.display Css.inlineBlock
+        , Css.position Css.relative
+        , Css.margin (Css.px 1)
+        , Css.borderRadius (Css.px 20)
+        , Css.textAlign Css.center
+        , Css.fontFamilies [ "Helvetica", .value Css.sansSerif ]
+        , Css.fontSize (Css.px 26)
+        , userSelect None
+        , Css.overflow Css.hidden
         ]
 
 
-sashStyle : CardType -> Style
+sashStyle : CardType -> List Css.Mixin
 sashStyle cardType =
-    [ ( "content", "''" )
-    , ( "width", "10px" )
-    , ( "height", "50px" )
-    , ( "transform", "rotate(45deg)" )
-    , ( "position", "absolute" )
-    , ( "left", "8px" )
-    , ( "top", "-12px" )
-    , ( "background-color", cardColor cardType )
+    [ content (StringValue "''")
+    , Css.width (Css.px 10)
+    , Css.height (Css.px 50)
+    , Css.transform (Css.rotate (Css.deg 45))
+    , Css.position Css.absolute
+    , Css.left (Css.px 8)
+    , Css.top (Css.px -12)
+    , Css.backgroundColor (toCssColor <| cardColor cardType)
     ]
 
 
-remainingBoxStyle : Team -> Bool -> Style
+remainingBoxStyle : Team -> Bool -> List Css.Mixin
 remainingBoxStyle team active =
     let
         borderWidth =
             if active then
-                "3px"
+                Css.px 3
             else
-                "1px"
+                Css.px 1
     in
-        [ ( "width", "478px" )
-        , ( "height", "48px" )
-        , ( "display", "inline-block" )
-        , ( "font-size", "30px" )
-        , ( "text-indent", "10px" )
-        , ( "line-height", "45px" )
-        , ( "border-style", "solid" )
-        , ( "border-width", borderWidth )
-        , ( "border-color", teamColor team )
-        , ( "background-color", teamBackgroundColor team )
+        [ Css.width (Css.px 478)
+        , Css.height (Css.px 48)
+        , Css.display Css.inlineBlock
+        , Css.fontSize (Css.px 30)
+        , Css.textIndent (Css.px 10)
+        , Css.lineHeight (Css.px 45)
+        , Css.border3 borderWidth Css.solid (toCssColor <| teamColor team)
+        , Css.backgroundColor (toCssColor <| teamBackgroundColor team)
         ]
 
 
-clueSectionStyle : Style
+clueSectionStyle : List Css.Mixin
 clueSectionStyle =
-    [ ( "display", "flex" )
-    , ( "margin", "5px" )
-    , ( "border", "1px dashed black" )
+    [ Css.displayFlex
+    , Css.margin (Css.px 5)
+    , Css.border3 (Css.px 1) Css.dashed (toCssColor Black)
     ]
 
 
-clueDisplayStyle : Style
+clueDisplayStyle : List Css.Mixin
 clueDisplayStyle =
-    [ ( "width", "200px" )
-    , ( "margin", "4px" )
-    , ( "overflow-y", "auto" )
+    [ Css.width (Css.px 200)
+    , Css.margin (Css.px 4)
+    , Css.overflowY Css.auto
     ]
 
 
@@ -189,26 +254,26 @@ cardNode v card hasHints isGameOver =
             ]
 
         myStyle =
-            style <| cardStyle card isGameOver
+            styles <| cardStyle card isGameOver
     in
         span (myStyle :: myTriggers) [ myText, mySash ]
 
 
 sash : CardType -> Html Msg
 sash cardType =
-    div [ style <| sashStyle cardType ] []
+    div [ styles <| sashStyle cardType ] []
 
 
 resetButton : Html Msg
 resetButton =
-    button [ onClick Reset, style buttonStyle ] [ text "New Game" ]
+    button [ onClick Reset, styles buttonStyle ] [ text "New Game" ]
 
 
 passButton : Bool -> Html Msg
 passButton disabled =
     button
         [ onClick <| Send [ PassTurn ]
-        , style buttonStyle 
+        , styles buttonStyle
         , Html.Attributes.disabled disabled
         ]
         [ text "Pass Turn" ]
@@ -218,7 +283,7 @@ hintsButton : Bool -> Html Msg
 hintsButton isHintsOn =
     let
         myStyle =
-            style <| [ ( "min-width", "240px" ) ] ++ buttonStyle
+            styles <| Css.minWidth (Css.px 240) :: buttonStyle
 
         myText =
             if isHintsOn then
@@ -241,7 +306,7 @@ remainingBox model team =
         myText =
             text <| (++) "Cards Remaining: " <| toString <| cardsRemaining model.board <| Team team
     in
-        div [ style myStyle ] [ myText ]
+        div [ styles myStyle ] [ myText ]
 
 
 wordListButton : WordList -> Html Msg
@@ -286,7 +351,8 @@ clueInput model =
                 , placeholder "0"
                 , value <| toString model.num
                 , Html.Attributes.min "1"
-                , Html.Attributes.max "9" ]
+                , Html.Attributes.max "9"
+                ]
                 []
 
         clueButton =
@@ -302,8 +368,7 @@ clueInput model =
                 onSubmit NoOp
 
         myStyle =
-            style [ ( "margin", "4px" ) ]
-
+            styles [ Css.margin (Css.px 4) ]
     in
         Html.form [ myStyle, myEvent ] [ clueBox, b, numBox, b, clueButton ]
 
@@ -313,20 +378,20 @@ clueDisplay model =
     let
         entryRender ( team, clue, num, guesses ) =
             div []
-                [ div [ style [ ( "color", teamColor team ) ] ]
+                [ div [ styles [ Css.color (toCssColor <| teamColor team) ] ]
                     [ text <| clue ++ " : " ++ toString num ]
                 , div []
                     [ text <| (++) "> " <| String.join ", " <| List.reverse guesses ]
                 ]
     in
-        div [ style clueDisplayStyle, id "chat" ] (List.reverse <| List.map entryRender model.log)
+        div [ styles clueDisplayStyle, id "chat" ] (List.reverse <| List.map entryRender model.log)
 
 
 renderGrid : (Vector -> a -> Html b) -> Grid a -> Html b
 renderGrid f grid =
     Grid.indexedMap f grid
         |> Grid.foldRightBottom (::) (\x acc -> (div [] x) :: acc) [] []
-        |> div [ style [ ( "font-size", "0px" ) ] ]
+        |> div [ styles [ Css.fontSize (Css.px 0) ] ]
 
 
 view : Model -> Html Msg
@@ -337,14 +402,14 @@ view model =
 
         menuButtons =
             span
-                [ style [ ( "padding", "5px" ) ] ]
+                [ styles [ Css.padding (Css.px 5) ] ]
                 [ resetButton, pass, hintsButton model.hints, br [] [], wordListButton EasyWords, br [] [], wordListButton OriginalWords, br [] [], wordListButton HardWords ]
 
         clueButtons =
-            div [ style clueSectionStyle ] [ clueInput model, clueDisplay model ]
+            div [ styles clueSectionStyle ] [ clueInput model, clueDisplay model ]
 
         buttonArea =
-            div [ style [ ( "display", "flex" ), ( "height", "140px" ) ] ] [ menuButtons, clueButtons ]
+            div [ styles [ Css.displayFlex, Css.height (Css.px 140) ] ] [ menuButtons, clueButtons ]
 
         cardArea =
             renderGrid (\a b -> cardNode a b model.hints model.isGameOver) model.board
